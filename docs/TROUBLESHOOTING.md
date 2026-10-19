@@ -6,7 +6,9 @@ Use `lobs` instead only if you installed the command on your PATH.
 | symptom | check | next action |
 |---|---|---|
 | `dist/index.js` is missing | source checkout versus extracted release | run `pnpm install --frozen-lockfile` and `pnpm build`, or use the prebuilt release |
-| connection or authentication fails | OBS is running; Tools → WebSocket Server Settings has server and authentication enabled | keep the password in OBS; rerun doctor after correcting the local server setup |
+| connection or authentication fails | OBS is running; Tools -> WebSocket Server Settings has server and authentication enabled | keep the password in OBS; if `doctor` reports a crash/run sentinel, dismiss the OBS Safe Mode prompt or start OBS normally (OBS 33.0+ disables WebSocket in Safe Mode) |
+| NVENC initialization or AV1 warning | `doctor` `nvenc-av1` detail and GPU driver version | OBS 32.2+ uses NVIDIA Video Codec SDK 13 and requires NVIDIA driver 570 or newer; update the GPU driver or select a supported encoder |
+| SDR window or overlay looks washed out on HDR canvas | `doctor` `display-hdr-mode` filter report and capture settings | in OBS 32.2+, use the built-in `sdr_on_hdr_filter` (Compose SDR into HDR) or enable `force SDR` on WGC window captures |
 | FFprobe warning | `where.exe ffprobe` | install FFprobe or set `LEGENDS_OBS_FFPROBE_PATH` to its executable before a recording canary |
 | encoder or HDR warning | current machine's reported capabilities | inspect inventory and choose a suitable profile; do not copy the RTX 4090 reference preset blindly |
 | no last-known-good snapshot | `audit:status` | capture a first baseline; a successful recording canary establishes known-good state |

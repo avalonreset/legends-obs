@@ -1,4 +1,5 @@
 import os from "node:os";
+import path from "node:path";
 import { spawn } from "node:child_process";
 import type { KitConfig } from "./config.js";
 import {
@@ -9,6 +10,7 @@ import {
   readObsCapabilitiesFromLatestLog,
   readObsWebSocketConfig,
   readProfileIniSettings,
+  readVideoAdaptersFromLatestLog,
 } from "./obs-config.js";
 import type { ObsWebSocketClient } from "./obs-websocket.js";
 import { getOutputActivity } from "./obs-websocket.js";
@@ -24,6 +26,17 @@ async function commandOutput(command: string, args: string[]): Promise<string | 
     child.on("error", () => resolve(null));
     child.on("close", (code) => resolve(code === 0 ? stdout.trim() : null));
   });
+}
+
+async function queryNvidiaSmi(): Promise<string | null> {
+  const args = ["--query-gpu=name,driver_version,memory.total,encoder.stats.sessionCount", "--format=csv,noheader,nounits"];
+  const direct = await commandOutput("nvidia-smi", args);
+  if (direct) return direct;
+  if (process.platform === "win32") {
+    const sysRoot = process.env.SystemRoot || "C:\\Windows";
+    return await commandOutput(path.join(sysRoot, "System32", "nvidia-smi.exe"), args);
+  }
+  return null;
 }
 
 async function probeMedia(ffprobePath: string, file: string): Promise<JsonObject | null> {
@@ -51,17 +64,25 @@ function stringList(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String).sort() : [];
 }
 
-function parseGpuInventory(raw: string | null): JsonObject[] {
-  if (!raw) return [];
-  return raw.split(/\r?\n/).filter(Boolean).map((line) => {
-    const [name, driverVersion, memoryMiB, encoderSessionCount] = line.split(",").map((value) => value.trim());
-    return {
-      name: name || "unknown",
-      driverVersion: driverVersion || "unknown",
-      memoryMiB: Number.isFinite(Number(memoryMiB)) ? Number(memoryMiB) : null,
-      encoderSessionCount: Number.isFinite(Number(encoderSessionCount)) ? Number(encoderSessionCount) : null,
-    };
-  });
+function parseGpuInventory(raw: string | null, fallbackAdapters: JsonObject[] = []): JsonObject[] {
+  if (raw) {
+    const parsed = raw.split(/\r?\n/).filter(Boolean).map((line) => {
+      const [name, driverVersion, memoryMiB, encoderSessionCount] = line.split(",").map((value) => value.trim());
+      return {
+        name: name || "unknown",
+        driverVersion: driverVersion || "unknown",
+        memoryMiB: Number.isFinite(Number(memoryMiB)) ? Number(memoryMiB) : null,
+        encoderSessionCount: Number.isFinite(Number(encoderSessionCount)) ? Number(encoderSessionCount) : null,
+      };
+    });
+    if (parsed.length > 0) return parsed;
+  }
+  return fallbackAdapters.map((adapter) => ({
+    name: String(adapter.name ?? "unknown"),
+    driverVersion: String(adapter.driverVersion ?? "unknown"),
+    memoryMiB: typeof adapter.memoryMiB === "number" ? adapter.memoryMiB : null,
+    encoderSessionCount: null,
+  }));
 }
 
 async function collectInputState(client: ObsWebSocketClient, inputUuid: string): Promise<JsonObject> {
@@ -95,6 +116,7 @@ export async function collectInventory(client: ObsWebSocketClient, config: KitCo
     wsConfig,
     logPath,
     displayProfiles,
+    logAdapters,
     gpuRaw,
     inputKindList,
     filterKindList,
@@ -121,7 +143,8 @@ export async function collectInventory(client: ObsWebSocketClient, config: KitCo
     readObsWebSocketConfig(config.websocketConfigPath),
     latestObsLog(config.obsConfigRoot),
     readDisplayProfilesFromLatestLog(config.obsConfigRoot),
-    commandOutput("nvidia-smi", ["--query-gpu=name,driver_version,memory.total,encoder.stats.sessionCount", "--format=csv,noheader,nounits"]),
+    readVideoAdaptersFromLatestLog(config.obsConfigRoot),
+    queryNvidiaSmi(),
     optionalRequest(client, "GetInputKindList"),
     optionalRequest(client, "GetSourceFilterKindList"),
     optionalRequest(client, "GetTransitionKindList"),
@@ -216,7 +239,7 @@ export async function collectInventory(client: ObsWebSocketClient, config: KitCo
       cpu: os.cpus()[0]?.model ?? null,
       logicalProcessors: os.cpus().length,
       ramGiB: Number((os.totalmem() / 1024 ** 3).toFixed(1)),
-      gpus: parseGpuInventory(gpuRaw),
+      gpus: parseGpuInventory(gpuRaw, logAdapters),
       node: process.version,
     },
     control: publicWebSocketConfig(wsConfig),

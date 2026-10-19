@@ -120,6 +120,55 @@ export async function readDisplayProfileFromLatestLog(obsConfigRoot: string): Pr
   return (await readDisplayProfilesFromLatestLog(obsConfigRoot))[0] ?? null;
 }
 
+export async function readVideoAdaptersFromLatestLog(obsConfigRoot: string): Promise<JsonObject[]> {
+  const file = await latestObsLog(obsConfigRoot);
+  if (!file) return [];
+  const lines = (await readFile(file, "utf8")).split(/\r?\n/).map((line) => line.replace(/^\d{2}:\d{2}:\d{2}\.\d+:\s*/, ""));
+  const adapters: JsonObject[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = /^\s*Adapter\s+(\d+):\s+(.+?)\s*$/.exec(lines[index]);
+    if (!match) continue;
+    const block = lines.slice(index + 1, Math.min(lines.length, index + 10)).join("\n");
+    const vramMatch = /Dedicated VRAM:\s*(\d+)/i.exec(block);
+    const driverMatch = /Driver Version:\s*([^\r\n]+)/i.exec(block);
+    const hagsMatch = /HAGS Status:\s*([^\r\n]+)/i.exec(block);
+    const memoryMiB = vramMatch ? Math.round(Number(vramMatch[1]) / (1024 * 1024)) : null;
+    adapters.push({
+      index: Number(match[1]),
+      name: match[2].trim(),
+      driverVersion: driverMatch?.[1]?.trim() ?? "unknown",
+      memoryMiB: Number.isFinite(memoryMiB) ? memoryMiB : null,
+      hagsStatus: hagsMatch?.[1]?.trim() ?? null,
+    });
+  }
+  return adapters;
+}
+
+export async function readObsCrashSentinel(obsConfigRoot: string): Promise<JsonObject> {
+  const sentinelFiles: string[] = [];
+  try {
+    const rootEntries = await readdir(obsConfigRoot, { withFileTypes: true });
+    for (const entry of rootEntries) {
+      if (entry.isFile() && /^run_[0-9a-f-]+$/i.test(entry.name)) sentinelFiles.push(entry.name);
+    }
+  } catch {
+    // Ignore missing config root.
+  }
+  try {
+    const dotSentinel = path.join(obsConfigRoot, ".sentinel");
+    const subEntries = await readdir(dotSentinel, { withFileTypes: true });
+    for (const entry of subEntries) {
+      if (entry.isFile()) sentinelFiles.push(`.sentinel/${entry.name}`);
+    }
+  } catch {
+    // Ignore missing .sentinel directory.
+  }
+  return {
+    present: sentinelFiles.length > 0,
+    count: sentinelFiles.length,
+  };
+}
+
 export async function readObsCapabilitiesFromLatestLog(obsConfigRoot: string): Promise<JsonObject | null> {
   const file = await latestObsLog(obsConfigRoot);
   if (!file) return null;

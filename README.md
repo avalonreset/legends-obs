@@ -7,7 +7,7 @@
 [![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-obs-kit/ci.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-obs-kit/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/avalonreset/legends-obs-kit?label=license&style=flat-square&labelColor=000000&color=666666)](LICENSE)
 
-legends-obs-kit is a guarded, agent-friendly CLI for inspecting, configuring, operating, and proving OBS Studio on Windows. It uses OBS's built-in WebSocket v5 API, local OBS logs, and FFprobe—no ambient MCP server and no UI click macros.
+legends-obs-kit is a guarded, agent-friendly CLI for inspecting, configuring, operating, and proving OBS Studio on Windows. It uses OBS's built-in WebSocket v5 API, local OBS logs, and FFprobe, with no ambient MCP server and no UI click macros.
 
 ## Agent setup (via `cto-legends`)
 
@@ -44,18 +44,18 @@ Bundled recording presets are opt-in examples, not universal recommendations. `d
 - pnpm 10 for source builds; the prebuilt release does not require pnpm
 - FFprobe on `PATH` only for `record:canary` (or set `LEGENDS_OBS_FFPROBE_PATH` to `ffprobe.exe`)
 
-Live compatibility was most recently verified with OBS Studio 32.2.2 and obs-websocket 5.7.4. The bundled `hdr-4k60-av1-hybrid-mp4` reference preset was canary-qualified on an NVIDIA RTX 4090; do not apply it to different hardware without reviewing `profile:plan` and the encoder inventory.
+Live compatibility was most recently verified with OBS Studio 32.2.2 and obs-websocket 5.7.4 (with forward checks for OBS 33.0 Safe Mode sentinel handling). OBS 32.2+ compiles against NVIDIA Video Codec SDK 13 (requiring NVIDIA driver 570+ for NVENC) and adds `sdr_on_hdr_filter` for composing SDR sources on HDR canvases; `doctor` reports both alongside crash-sentinel diagnostics. The bundled `hdr-4k60-av1-hybrid-mp4` reference preset was canary-qualified on an NVIDIA RTX 4090; do not apply it to different hardware without reviewing `profile:plan` and the encoder inventory.
 
 ## install a release
 
-Download `avalonreset-legends-obs-kit-0.1.1.tgz` and `SHA256SUMS.txt` from
-[v0.1.1](https://github.com/avalonreset/legends-obs-kit/releases/tag/v0.1.1).
-Compare `Get-FileHash .\avalonreset-legends-obs-kit-0.1.1.tgz -Algorithm SHA256`
+Download `avalonreset-legends-obs-kit-0.1.2.tgz` and `SHA256SUMS.txt` from
+[v0.1.2](https://github.com/avalonreset/legends-obs-kit/releases/tag/v0.1.2).
+Compare `Get-FileHash .\avalonreset-legends-obs-kit-0.1.2.tgz -Algorithm SHA256`
 with the checksum file, then extract into a new directory:
 
 ```powershell
 New-Item -ItemType Directory legends-obs-release
-tar -xzf .\avalonreset-legends-obs-kit-0.1.1.tgz -C .\legends-obs-release
+tar -xzf .\avalonreset-legends-obs-kit-0.1.2.tgz -C .\legends-obs-release
 Set-Location .\legends-obs-release\package
 node .\dist\index.js manifest --pretty
 ```

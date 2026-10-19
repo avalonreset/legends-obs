@@ -26,8 +26,8 @@ The immutable records live at:
 
 Two small pointers make fast decisions safe:
 
-- `latest.json` — the newest observed audit, including manual captures and pre/post mutation captures;
-- `last-known-good.json` — the exact settings that produced a passing FFprobe/log/frame-qualified local canary.
+- `latest.json`: the newest observed audit, including manual captures and pre/post mutation captures;
+- `last-known-good.json`: the exact settings that produced a passing FFprobe/log/frame-qualified local canary.
 
 An observed capture never overwrites the good pointer. A failed canary also leaves it untouched.
 
@@ -53,4 +53,4 @@ node .\dist\index.js audit:verify --pretty
 - `record:canary` records current state after the proof run.
 - Only a passing `record:canary` marks that audit `verified-good` and advances `last-known-good`.
 
-The machine key is derived from stable host and hardware facts, excluding driver version and active encoder-session count. Driver, OBS, plugin, and capability changes therefore appear as drift within the same machine history instead of silently creating a new identity.
+The machine key is derived from stable host and hardware facts, excluding driver version, active encoder-session count, and ephemeral scene/transition UUIDs. GPU identity falls back from `nvidia-smi` on `PATH` to `%SystemRoot%\System32\nvidia-smi.exe` and the active OBS log's D3D11 adapter table so stripped shell environments do not fork machine history. Driver, OBS, plugin, and capability changes therefore appear as drift within the same machine history instead of silently creating a new identity.

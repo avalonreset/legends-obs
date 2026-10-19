@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 - 2026-10-19
+
+- Added OBS 32.2+ and 33.0 diagnostics in `doctor`: reports NVENC SDK/driver/CUDA versions (`nvenc-av1`), `sdr_on_hdr_filter` and `hdr_tonemap_filter` availability (`display-hdr-mode`), and unclean-shutdown crash/run sentinel markers (`run_*`, `.sentinel`) when `authenticated-control` fails (ahead of OBS 33.0 disabling WebSocket in Safe Mode).
+- Stabilized hardware identity and audit drift: `inventory` falls back to `%SystemRoot%\System32\nvidia-smi.exe` and OBS D3D11 adapter log headers when subshell `PATH` is stripped, `audit` ignores ephemeral `currentSceneTransitionUuid` regeneration across OBS restarts, and `compareAudit` resolves legacy `<host>-<hash12>` pointers seamlessly.
+- Refreshed troubleshooting, audit ledger, and contributor documentation; re-qualified live 4K60 AV1 10-bit PQ/BT.2020 canary on OBS Studio 32.2.2 / obs-websocket 5.7.4.
+
 ## 0.1.1 - 2026-09-25
 
 - Prebuilt release artifact generation: attach the `npm pack` tarball to the GitHub release so catalog installs resolve a verified `artifact_url` with `dist/index.js` plus its runtime needs.
@@ -15,7 +21,7 @@
 - Adopt the former standalone cursor overlay as optional extra `extras/cursor/` (filter Lua, shader, installer, readme).
 - The extra stays GPL-2.0-or-later with its own LICENSE; the kit remains MIT.
 
-## 0.4.0 — 2026-09-04
+## 0.4.0 - 2026-09-04
 
 - Prepared the repository as an MIT-licensed public release candidate with repository metadata, security guidance, contribution guidance, and Windows CI.
 - Generalized `doctor`: authenticated OBS control is the hard gate; FFprobe, recording path, microphone, NVENC, HDR, and performance are capability reports.
@@ -31,17 +37,17 @@
 - Qualified live control against OBS Studio 32.2.2 / obs-websocket 5.7.4.
 - Passed a fresh 4K60 AV1 10-bit PQ/BT.2020 canary with four audio streams, microphone verification, no encoder errors, and no skipped output or render frames.
 
-## 0.3.0 — 2026-07-19
+## 0.3.0 - 2026-07-19
 
 - Added primary-microphone status, repair planning, and guarded endpoint binding.
 - Added required doctor and recording gates for endpoint availability, mute, fader, and track routing.
 - Added pre/post audio audits, exact readback, rollback receipts, and canary microphone evidence.
 - Added a Windows Default binding option after a stale USB endpoint silently disabled a primary microphone.
-- Verified real signal on Mic/Aux tracks 1–2 and proved the Zoom reinitializes after an OBS restart.
+- Verified real signal on Mic/Aux tracks 1-2 and proved the Zoom reinitializes after an OBS restart.
 - Fixed recording-start readback to wait through encoder initialization.
 - Fixed canary handling when OBS resets its skipped-frame counter between samples.
 
-## 0.2.0 — 2026-07-18
+## 0.2.0 - 2026-07-18
 
 - Added a hardware-specific, redacted settings and capability audit ledger.
 - Added immutable captures plus separate `latest` and canary-qualified `last-known-good` pointers.
@@ -50,7 +56,7 @@
 - Integrated automatic pre/post profile captures and verified-good canary capture.
 - Added ledger health to doctor and strengthened URL/token redaction.
 
-## 0.1.0 — 2026-07-18
+## 0.1.0 - 2026-07-18
 
 - Added authenticated OBS WebSocket v5 CLI spine.
 - Added redacted inventory, doctor, manifest, and agent context.

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -11,12 +11,14 @@ import {
   hashJson,
   persistAuditDocument,
   readAuditStatus,
+  resolveMachinePointer,
   showAudit,
   verifyAudits,
 } from "../src/audit.js";
+import { readObsCrashSentinel, readVideoAdaptersFromLatestLog } from "../src/obs-config.js";
 import type { JsonObject } from "../src/types.js";
 
-function auditDocument(capturedAt: string, classification: "observed" | "verified-good", secret = "safe"): JsonObject {
+function auditDocument(capturedAt: string, classification: "observed" | "verified-good", secret = "safe", machineKey = "workstation-test"): JsonObject {
   const hardware = { gpu: "RTX 4090" };
   const capabilities = { encoders: ["av1"] };
   const decisionSurface = { hardware, capabilities, settings: { profile: "HDR", quality: 18 } };
@@ -26,7 +28,7 @@ function auditDocument(capturedAt: string, classification: "observed" | "verifie
     capturedAt,
     reason: classification,
     classification,
-    machineKey: "workstation-test",
+    machineKey,
     hashes: {
       hardware: hashJson(hardware),
       capabilities: hashJson(capabilities),
@@ -86,23 +88,26 @@ test("drift diff treats primitive and named arrays as stable sets", () => {
   ]);
 });
 
-test("decision surface ignores the recorder's last output file path", () => {
-  const inventory = (lastPath: string) => ({
+test("decision surface ignores the recorder's last output file path and ephemeral transition UUIDs", () => {
+  const inventory = (lastPath: string, transitionUuid: string) => ({
     machine: {},
     control: {},
-    obs: { outputs: [{ outputName: "record", settings: { path: lastPath, format: "mkv" } }] },
+    obs: {
+      outputs: [{ outputName: "record", settings: { path: lastPath, format: "mkv" } }],
+      transitions: { available: { currentSceneTransitionName: "Fade", currentSceneTransitionUuid: transitionUuid } },
+    },
   }) as JsonObject;
   assert.equal(
-    hashJson(buildDecisionSurface(inventory("D:/GAMECAPTURE/one.mkv"))),
-    hashJson(buildDecisionSurface(inventory("D:/GAMECAPTURE/two.mkv"))),
+    hashJson(buildDecisionSurface(inventory("D:/GAMECAPTURE/one.mkv", "uuid-1"))),
+    hashJson(buildDecisionSurface(inventory("D:/GAMECAPTURE/two.mkv", "uuid-2"))),
   );
 });
 
-test("ledger keeps latest observed separate from last-known-good", async () => {
+test("ledger keeps latest observed separate from last-known-good and falls back across legacy machine prefix", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "legends-obs-audit-test-"));
   try {
-    const good = await persistAuditDocument(directory, auditDocument("2026-07-18T20:00:00.000Z", "verified-good", "first-secret"));
-    const observed = await persistAuditDocument(directory, auditDocument("2026-07-18T21:00:00.000Z", "observed", "second-secret"));
+    const good = await persistAuditDocument(directory, auditDocument("2026-07-18T20:00:00.000Z", "verified-good", "first-secret", "host-0123456789ab"));
+    const observed = await persistAuditDocument(directory, auditDocument("2026-07-18T21:00:00.000Z", "observed", "second-secret", "host-0123456789ab"));
     const status = await readAuditStatus(directory);
     assert.equal(status.ok, true);
     const machine = (status.machines as JsonObject[])[0];
@@ -119,6 +124,37 @@ test("ledger keeps latest observed separate from last-known-good", async () => {
     const shown = await showAudit(directory, "good");
     assert.equal(shown.classification, "verified-good");
     assert.deepEqual(shown.decisionSurface, auditDocument("2026-07-18T20:00:00.000Z", "verified-good").decisionSurface);
+    const legacyFallback = await resolveMachinePointer(directory, "machine-0123456789ab", "last-known-good");
+    assert.equal(legacyFallback !== null, true);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("obs log adapter and crash sentinel helpers parse adapter blocks and sentinel files", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "legends-obs-log-test-"));
+  try {
+    await mkdir(path.join(directory, "logs"), { recursive: true });
+    await writeFile(
+      path.join(directory, "logs", "2026-10-19 16-00-00.txt"),
+      [
+        "16:00:00.100: Available Video Adapters:",
+        "16:00:00.101: \tAdapter 0: NVIDIA GeForce RTX 4090",
+        "16:00:00.101: \t  Dedicated VRAM: 25310527488 (23.6 GiB)",
+        "16:00:00.101: \t  HAGS Status:    Enabled",
+        "16:00:00.101: \t  Driver Version: 32.0.16.1062",
+      ].join("\n"),
+      "utf8",
+    );
+    const adapters = await readVideoAdaptersFromLatestLog(directory);
+    assert.equal(adapters.length, 1);
+    assert.equal(adapters[0].name, "NVIDIA GeForce RTX 4090");
+    assert.equal(adapters[0].memoryMiB, 24138);
+    assert.equal(adapters[0].driverVersion, "32.0.16.1062");
+
+    assert.deepEqual(await readObsCrashSentinel(directory), { present: false, count: 0 });
+    await writeFile(path.join(directory, "run_00000000-1111-2222-3333-444444444444"), "", "utf8");
+    assert.deepEqual(await readObsCrashSentinel(directory), { present: true, count: 1 });
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

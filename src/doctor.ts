@@ -3,7 +3,14 @@ import { constants } from "node:fs";
 import { spawn } from "node:child_process";
 import { readAuditStatus } from "./audit.js";
 import type { KitConfig } from "./config.js";
-import { latestObsLog, publicWebSocketConfig, readDisplayProfilesFromLatestLog, readObsWebSocketConfig } from "./obs-config.js";
+import {
+  latestObsLog,
+  publicWebSocketConfig,
+  readDisplayProfilesFromLatestLog,
+  readObsCapabilitiesFromLatestLog,
+  readObsCrashSentinel,
+  readObsWebSocketConfig,
+} from "./obs-config.js";
 import { ObsWebSocketClient } from "./obs-websocket.js";
 import { getPrimaryMicrophoneStatus } from "./audio.js";
 import type { JsonObject, JsonValue } from "./types.js";
@@ -62,11 +69,15 @@ export async function runDoctor(config: KitConfig): Promise<JsonObject> {
   if (wsConfig?.server_enabled) {
     try {
       client = await ObsWebSocketClient.connect(config.host, wsConfig);
-      const [version, stats, recording] = await Promise.all([
+      const [version, stats, recording, filterKindsResponse] = await Promise.all([
         client.request("GetVersion"),
         client.request("GetStats"),
         client.request("GetRecordStatus"),
+        client.request("GetSourceFilterKindList").catch(() => null),
       ]);
+      const filterKinds = Array.isArray(filterKindsResponse?.sourceFilterKinds)
+        ? (filterKindsResponse.sourceFilterKinds as unknown[]).map(String)
+        : [];
       checks.push(check("authenticated-control", true, {
         obsVersion: version.obsVersion,
         obsWebSocketVersion: version.obsWebSocketVersion,
@@ -111,6 +122,7 @@ export async function runDoctor(config: KitConfig): Promise<JsonObject> {
       }
 
       const logPath = await latestObsLog(config.obsConfigRoot);
+      const logCapabilities = await readObsCapabilitiesFromLatestLog(config.obsConfigRoot).catch(() => null);
       let av1Supported = false;
       try {
         if (logPath) {
@@ -120,7 +132,11 @@ export async function runDoctor(config: KitConfig): Promise<JsonObject> {
       } catch {
         av1Supported = false;
       }
-      checks.push(check("nvenc-av1", av1Supported, { supported: av1Supported, obsLogFound: Boolean(logPath) }, false));
+      checks.push(check("nvenc-av1", av1Supported, {
+        supported: av1Supported,
+        obsLogFound: Boolean(logPath),
+        nvenc: (logCapabilities?.nvenc as JsonValue | undefined) ?? null,
+      }, false));
       try {
         const displays = await readDisplayProfilesFromLatestLog(config.obsConfigRoot);
         const hdrDisplays = displays.filter((display) => /G2084/.test(String(display.colorSpace ?? "")) && /P2020/.test(String(display.colorSpace ?? "")));
@@ -128,6 +144,8 @@ export async function runDoctor(config: KitConfig): Promise<JsonObject> {
           displayCount: displays.length,
           hdrDisplayCount: hdrDisplays.length,
           colorSpaces: [...new Set(displays.map((display) => String(display.colorSpace ?? "unknown")))].sort(),
+          sdrOnHdrFilterAvailable: filterKinds.includes("sdr_on_hdr_filter"),
+          hdrTonemapFilterAvailable: filterKinds.includes("hdr_tonemap_filter"),
         }, false));
       } catch (error) {
         checks.push(check("display-hdr-mode", false, error instanceof Error ? error.message : String(error), false));
@@ -145,7 +163,12 @@ export async function runDoctor(config: KitConfig): Promise<JsonObject> {
         checks.push(check("single-canvas-operations", false, error instanceof Error ? error.message : String(error), false));
       }
     } catch (error) {
-      checks.push(check("authenticated-control", false, error instanceof Error ? error.message : String(error)));
+      const sentinel = await readObsCrashSentinel(config.obsConfigRoot).catch(() => ({ present: false, count: 0 }));
+      const baseMessage = error instanceof Error ? error.message : String(error);
+      const detail = sentinel.present
+        ? `${baseMessage} (crash/run sentinel present in OBS config; OBS may be waiting at a Safe Mode dialog or running in Safe Mode with WebSocket disabled)`
+        : baseMessage;
+      checks.push(check("authenticated-control", false, detail));
     } finally {
       await client?.close();
     }

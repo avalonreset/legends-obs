@@ -93,6 +93,7 @@ const volatileKeys = new Set([
   "canvasUuid",
   "currentPreviewSceneUuid",
   "currentProgramSceneUuid",
+  "currentSceneTransitionUuid",
   "inputUuid",
   "sceneUuid",
   "sourceUuid",
@@ -526,6 +527,27 @@ export async function showAudit(stateDir: string, which: "latest" | "good", requ
   };
 }
 
+export async function resolveMachinePointer(stateDir: string, machineKey: string, pointerName: string): Promise<JsonObject | null> {
+  const auditsRoot = path.join(stateDir, "audits");
+  const primary = await readPointer(path.join(auditsRoot, machineKey), pointerName);
+  if (primary) return primary;
+  const suffix = machineKey.replace(/^machine-/, "");
+  if (!/^[a-f0-9]{12}$/i.test(suffix)) return null;
+  try {
+    const entries = (await readdir(auditsRoot, { withFileTypes: true }))
+      .filter((entry) => entry.isDirectory() && entry.name !== machineKey && entry.name.toLowerCase().endsWith(`-${suffix.toLowerCase()}`))
+      .map((entry) => entry.name)
+      .sort();
+    for (const candidate of entries) {
+      const found = await readPointer(path.join(auditsRoot, candidate), pointerName);
+      if (found) return found;
+    }
+  } catch {
+    // Ignore missing audits directory.
+  }
+  return null;
+}
+
 export async function compareAudit(
   client: ObsWebSocketClient,
   config: KitConfig,
@@ -534,9 +556,8 @@ export async function compareAudit(
 ): Promise<JsonObject> {
   const inventory = await collectInventory(client, config, preset);
   const machineKey = buildMachineKey(inventory.machine as JsonObject);
-  const machineDirectory = path.join(config.stateDir, "audits", machineKey);
   const pointerName = against === "latest" ? "latest" : "last-known-good";
-  const baseline = await readPointer(machineDirectory, pointerName);
+  const baseline = await resolveMachinePointer(config.stateDir, machineKey, pointerName);
   if (!baseline) throw new Error(`No ${pointerName} audit exists for ${machineKey}; run audit:capture, then a passing record:canary for last-known-good`);
   const document = baseline.document as JsonObject;
   const expectedSurface = document.decisionSurface as JsonObject;
