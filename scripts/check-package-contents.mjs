@@ -17,24 +17,30 @@ const required = [
   ".legends-router-pin",
   "AGENTS.md",
   "CHANGELOG.md",
+  "CITATION.cff",
+  "CODE_OF_CONDUCT.md",
   "CONTRIBUTING.md",
   "LICENSE",
+  "NOTICE",
   "README.md",
   "SECURITY.md",
+  "SUPPORT.md",
+  "THIRD_PARTY_NOTICES.md",
 ];
 for (const entry of required) assert(packageJson.files.includes(entry), `package files missing ${entry}`);
 for (const forbidden of [".legends-obs-kit", "node_modules", ".env"]) {
   assert(!packageJson.files.includes(forbidden), `package files must exclude ${forbidden}`);
 }
+assert.equal(packageJson.bin["legends-obs"], "./dist/index.js");
 assert.equal(packageJson.bin["legends-obs-kit"], "./dist/index.js");
 assert.notEqual(packageJson.private, true, "public release package must not be private");
 assert.equal(packageJson.license, "MIT");
-assert.equal(packageJson.repository?.url, "git+https://github.com/avalonreset/legends-obs-kit.git");
+assert.equal(packageJson.repository?.url, "git+https://github.com/avalonreset/legends-obs.git");
 
 const skillText = await readFile(path.join(root, "skills", "cto-legends", "SKILL.md"), "utf8");
 assert.match(skillText, /^---\r?\nname: cto-legends\r?\ndescription: .+\r?\n---/s, "vendored router SKILL.md needs valid name and description frontmatter");
 const moduleId = (await readFile(path.join(root, ".legends-module"), "utf8")).trim();
-assert.equal(moduleId, "legends-obs-kit", ".legends-module must hold the module id");
+assert.equal(moduleId, "legends-obs", ".legends-module must hold the module id");
 const routerPin = (await readFile(path.join(root, ".legends-router-pin"), "utf8")).trim();
 assert.match(routerPin, /^[0-9a-f]{40}$/, ".legends-router-pin must hold the router commit SHA");
 
@@ -73,9 +79,14 @@ const publicRoots = ["bin", "dist", "docs", "presets", "skills", "src", "test"].
 const publicFiles = [
   path.join(root, "AGENTS.md"),
   path.join(root, "CHANGELOG.md"),
+  path.join(root, "CITATION.cff"),
+  path.join(root, "CODE_OF_CONDUCT.md"),
   path.join(root, "CONTRIBUTING.md"),
+  path.join(root, "NOTICE"),
   path.join(root, "README.md"),
   path.join(root, "SECURITY.md"),
+  path.join(root, "SUPPORT.md"),
+  path.join(root, "THIRD_PARTY_NOTICES.md"),
 ];
 for (const directory of publicRoots) publicFiles.push(...await textFiles(directory));
 

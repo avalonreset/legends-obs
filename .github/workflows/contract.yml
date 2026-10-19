@@ -30,7 +30,7 @@ jobs:
 
       - name: Contract checks (no external deps)
         env:
-          MODULE_ID: "legends-obs-kit"
+          MODULE_ID: "legends-obs"
           REF_NAME: ${{ github.ref_name }}
         run: |
           python3 - <<'EOF'

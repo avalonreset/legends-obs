@@ -4,7 +4,7 @@ Legends OBS Cursor is an Avalon Reset project.
 
 ## Original Design
 
-- Original cursor art direction, rotating momentum dots, click language, and OBS use case: Benjamin / Avalon Reset.
+- Original cursor art direction, rotating momentum dots, click language, and OBS use case: Avalon Reset contributors.
 - Production packaging, installer hardening, documentation, and optional floaty-follow controls: Avalon Reset with Codex assistance.
 
 ## Platform And Runtime

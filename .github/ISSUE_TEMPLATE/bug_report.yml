@@ -1,0 +1,15 @@
+name: Bug report
+description: Report a reproducible problem without private OBS credentials or local machine data.
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Include the legends-obs version, Windows version, OBS Studio version, Node.js version, and sanitized doctor --pretty output. Never include OBS WebSocket passwords, stream keys, or unredacted local paths.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected result and reproduction
+      description: Provide the exact command run and state whether a dry-run or live mutation was attempted.
+    validations:
+      required: true

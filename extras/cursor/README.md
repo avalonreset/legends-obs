@@ -35,5 +35,5 @@ Regenerate from this folder with `python tools/render_assets.py` and
 
 This extra is GPL-2.0-or-later, Copyright 2026 Avalon Reset (see LICENSE in
 this folder, plus NOTICE and CREDITS.md in
-this folder). It is a separable component; the rest of legends-obs-kit stays MIT.
+this folder). It is a separable component; the rest of legends-obs stays MIT.
 It supersedes the former standalone legends-obs-cursor module: same filter, now housed here.

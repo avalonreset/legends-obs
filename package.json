@@ -1,26 +1,29 @@
 {
-  "name": "@avalonreset/legends-obs-kit",
+  "name": "@avalonreset/legends-obs",
   "version": "0.1.2",
   "description": "Guarded, agent-first control and proof for OBS Studio on Windows.",
   "license": "MIT",
   "author": "Avalon Reset contributors",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/avalonreset/legends-obs-kit.git"
+    "url": "git+https://github.com/avalonreset/legends-obs.git"
   },
   "homepage": "https://cto-legends.com",
   "bugs": {
-    "url": "https://github.com/avalonreset/legends-obs-kit/issues"
+    "url": "https://github.com/avalonreset/legends-obs/issues"
   },
   "keywords": [
     "obs-studio",
     "obs-websocket",
+    "obs-cli",
     "agent-skill",
     "automation",
-    "recording"
+    "recording",
+    "screen-recording"
   ],
   "type": "module",
   "bin": {
+    "legends-obs": "./dist/index.js",
     "legends-obs-kit": "./dist/index.js",
     "lobs": "./dist/index.js"
   },
@@ -36,10 +39,15 @@
     ".legends-router-pin",
     "AGENTS.md",
     "CHANGELOG.md",
+    "CITATION.cff",
+    "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "LICENSE",
+    "NOTICE",
     "README.md",
     "SECURITY.md",
+    "SUPPORT.md",
+    "THIRD_PARTY_NOTICES.md",
     "extras/cursor"
   ],
   "scripts": {

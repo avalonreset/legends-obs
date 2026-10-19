@@ -1,9 +1,9 @@
 # Agent compatibility
 
-All agents reach this kit through the one registered `cto-legends` router
+All agents reach this module through the one registered `cto-legends` router
 skill (vendored at `skills/cto-legends/SKILL.md`). There is no per-module
 skill directory and no per-host skill installer: run
-`cto-legends install legends-obs-kit` to preview the install, then follow the
+`cto-legends install legends-obs` (or the legacy alias `legends-obs-kit`) to preview the install, then follow the
 module recipe the router loads. The CLI is the deterministic runtime; the
 model only chooses and sequences commands. Agents without router access can
 still read `AGENTS.md` and run the CLI directly.

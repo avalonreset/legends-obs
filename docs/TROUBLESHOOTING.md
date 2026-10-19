@@ -19,7 +19,7 @@ Use `lobs` instead only if you installed the command on your PATH.
 
 Include the kit version, Windows and OBS versions, exact command, expected
 result, and redacted error. Say whether this came from a source checkout or a
-release archive. [Open an issue](https://github.com/avalonreset/legends-obs-kit/issues).
+release archive. [Open an issue](https://github.com/avalonreset/legends-obs/issues).
 
 Default status and inventory are privacy-minimized, but review anything before
 posting it. Do not attach OBS configuration, passwords, stream keys, recordings,

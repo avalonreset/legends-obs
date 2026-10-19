@@ -1,0 +1,15 @@
+name: Feature request
+description: Propose a bounded capability or workflow improvement for legends-obs.
+body:
+  - type: textarea
+    attributes:
+      label: Problem or workflow
+      description: Describe the OBS Studio recording, audit, or verification outcome you want to support.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed CLI behavior and safety boundary
+      description: Explain how dry-run, rollback, and verification should behave for this feature.
+    validations:
+      required: true

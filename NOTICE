@@ -1,0 +1,12 @@
+legends-obs
+Copyright (c) 2026 Avalon Reset contributors
+
+Independent community tooling built on OBS Studio's built-in WebSocket v5 API,
+local OBS logs, and FFprobe. OBS Studio names and trademarks belong to their
+respective owners. This project is not affiliated with or endorsed by the OBS Project.
+
+The central cto-legends router recipe is redistributed under the MIT license,
+copyright Avalon Reset contributors. Repository presentation uses legends-github
+renderers. The optional cursor overlay extra under extras/cursor/ is separable
+and licensed under GPL-2.0-or-later; see extras/cursor/LICENSE and
+THIRD_PARTY_NOTICES.md for source links and detailed attribution.

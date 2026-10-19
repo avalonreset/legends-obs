@@ -2,9 +2,10 @@
 
 ## 0.1.2 - 2026-10-19
 
+- Renamed the repository, package, CLI, and catalog identity to `legends-obs` (retaining `legends-obs-kit` and `lobs` as CLI/catalog compatibility aliases and preserving existing `.legends-obs-kit/` and `%LOCALAPPDATA%\LegendsOBSKit\state` ledgers).
 - Added OBS 32.2+ and 33.0 diagnostics in `doctor`: reports NVENC SDK/driver/CUDA versions (`nvenc-av1`), `sdr_on_hdr_filter` and `hdr_tonemap_filter` availability (`display-hdr-mode`), and unclean-shutdown crash/run sentinel markers (`run_*`, `.sentinel`) when `authenticated-control` fails (ahead of OBS 33.0 disabling WebSocket in Safe Mode).
 - Stabilized hardware identity and audit drift: `inventory` falls back to `%SystemRoot%\System32\nvidia-smi.exe` and OBS D3D11 adapter log headers when subshell `PATH` is stripped, `audit` ignores ephemeral `currentSceneTransitionUuid` regeneration across OBS restarts, and `compareAudit` resolves legacy `<host>-<hash12>` pointers seamlessly.
-- Refreshed troubleshooting, audit ledger, and contributor documentation; re-qualified live 4K60 AV1 10-bit PQ/BT.2020 canary on OBS Studio 32.2.2 / obs-websocket 5.7.4.
+- Refreshed banner and social-preview artwork, README architecture/troubleshooting sections, `CITATION.cff`, `NOTICE`, `THIRD_PARTY_NOTICES.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md`, and `.github` issue/PR/release templates; re-qualified live 4K60 AV1 10-bit PQ/BT.2020 canary on OBS Studio 32.2.2 / obs-websocket 5.7.4.
 
 ## 0.1.1 - 2026-09-25
 

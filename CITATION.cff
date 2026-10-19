@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite this project and retain its attribution."
+type: software
+title: "legends-obs"
+authors:
+  - name: "Avalon Reset contributors"
+repository-code: "https://github.com/avalonreset/legends-obs"
+url: "https://cto-legends.com"
+version: "0.1.2"
+license: MIT

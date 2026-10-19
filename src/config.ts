@@ -21,9 +21,12 @@ export function resolveConfig(env: NodeJS.ProcessEnv = process.env): KitConfig {
   const localAppData = env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
   const obsConfigRoot = path.resolve(env.LEGENDS_OBS_CONFIG_ROOT || path.join(appData, "obs-studio"));
   const legacyStateDir = path.join(repoRoot, ".legends-obs-kit");
+  const legacyAppDataStateDir = path.join(localAppData, "LegendsOBSKit", "state");
   const defaultStateDir = existsSync(legacyStateDir)
     ? legacyStateDir
-    : path.join(localAppData, "LegendsOBSKit", "state");
+    : existsSync(legacyAppDataStateDir)
+      ? legacyAppDataStateDir
+      : path.join(localAppData, "LegendsOBS", "state");
   const stateDir = path.resolve(env.LEGENDS_OBS_STATE_DIR || defaultStateDir);
   return {
     repoRoot,
