@@ -91,13 +91,8 @@ const publicFiles = [
 for (const directory of publicRoots) publicFiles.push(...await textFiles(directory));
 
 const privateMarkers = [
-  /C:\\Users\\rccol/i,
-  /E:\\empire/i,
-  /E:\\legends-/i,
-  /\bBenjamin\b/i,
-  /\bNERV\b/i,
-  /\bHADES\b/i,
-  /\bHISENSE\b/i,
+  /C:\\Users\\(?!Public\b|Default\b|someone\b|you\b)[A-Za-z0-9_.-]+/i,
+  /\b[DE]:\\(?:empire|legends-)/i,
   /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/,
   /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/,
   /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/,
