@@ -161,3 +161,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development checks, [SUPPORT.md](SUPP
 ## License
 
 MIT for the core CLI and documentation; see [LICENSE](LICENSE) and [NOTICE](NOTICE). The separable cursor filter in `extras/cursor/` is GPL-2.0-or-later; see [`extras/cursor/LICENSE`](extras/cursor/LICENSE).
+
+---
+
+**Specification & benchmarks on cto-legends.com:**
+- **Module specification & architecture matrix:** [cto-legends.com/modules/legends-obs](https://cto-legends.com/modules/legends-obs)
+- **Related engineering dispatches:** [How to Build AI Agents: Production CLI & MCP Routing](https://cto-legends.com/blog?post=how-to-build-ai-agents-cli-mcp-routing) · [Claude Code Skills: MCP vs CLI Workflow Architecture](https://cto-legends.com/blog?post=claude-code-skills-mcp-vs-cli-workflow) · [Browser Automation AI: Computer Use Agent Benchmarks](https://cto-legends.com/blog?post=browser-automation-ai-computer-use-benchmarks)
+- **Ecosystem hub:** [cto-legends.com/home](https://cto-legends.com/home)
