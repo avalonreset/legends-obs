@@ -60,14 +60,14 @@ Live compatibility was most recently verified with OBS Studio 32.2.2 and obs-web
 
 ## Install a release
 
-Download `avalonreset-legends-obs-0.1.2.tgz` and `SHA256SUMS.txt` from
-[v0.1.2](https://github.com/avalonreset/legends-obs/releases/tag/v0.1.2).
-Compare `Get-FileHash .\avalonreset-legends-obs-0.1.2.tgz -Algorithm SHA256`
+Download `avalonreset-legends-obs-0.1.3.tgz` and `SHA256SUMS.txt` from
+[v0.1.3](https://github.com/avalonreset/legends-obs/releases/tag/v0.1.3).
+Compare `Get-FileHash .\avalonreset-legends-obs-0.1.3.tgz -Algorithm SHA256`
 with the checksum file, then extract into a new directory:
 
 ```powershell
 New-Item -ItemType Directory legends-obs-release
-tar -xzf .\avalonreset-legends-obs-0.1.2.tgz -C .\legends-obs-release
+tar -xzf .\avalonreset-legends-obs-0.1.3.tgz -C .\legends-obs-release
 Set-Location .\legends-obs-release\package
 node .\dist\index.js manifest --pretty
 ```

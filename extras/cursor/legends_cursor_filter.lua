@@ -636,10 +636,10 @@ source_def.video_tick = function(data, seconds)
   data.prev_mouse_x = data.mouse_x
   data.prev_mouse_y = data.mouse_y
 
-  local l = pressed(VK_LBUTTON)
-  local r = pressed(VK_RBUTTON)
-  if data.enable_left_click and l and not data.last_l then add_click(data, 1.0) end
-  if data.enable_right_click and r and not data.last_r then add_click(data, 2.0) end
+  local l = data.enable_left_click and pressed(VK_LBUTTON) or false
+  local r = data.enable_right_click and pressed(VK_RBUTTON) or false
+  if l and not data.last_l then add_click(data, 1.0) end
+  if r and not data.last_r then add_click(data, 2.0) end
   data.last_l = l
   data.last_r = r
 

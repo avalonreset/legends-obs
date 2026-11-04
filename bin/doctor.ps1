@@ -7,11 +7,8 @@ try {
   if (Test-Path -LiteralPath $BuiltCli) {
     & node $BuiltCli doctor --pretty
   }
-  elseif (Test-Path -LiteralPath (Join-Path $RepoRoot 'src\index.ts')) {
-    & corepack pnpm dev -- doctor --pretty
-  }
   else {
-    throw 'Missing built CLI and source tree. Re-download the complete release or repository.'
+    throw 'Missing built CLI (dist\index.js). Run pnpm build or re-download the complete release.'
   }
   exit $LASTEXITCODE
 }

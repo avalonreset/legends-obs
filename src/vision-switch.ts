@@ -626,7 +626,7 @@ function runPowerShellJson(scriptPath: string, timeoutMs: number): Promise<strin
   return new Promise((resolve, reject) => {
     const child = spawn(
       "powershell.exe",
-      ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", scriptPath],
+      ["-NoProfile", "-NonInteractive", "-File", scriptPath],
       { windowsHide: true },
     );
     let stdout = "";

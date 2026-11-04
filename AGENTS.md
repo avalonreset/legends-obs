@@ -10,3 +10,4 @@
 8. A recording is `WORKS` only after `record:canary` verifies FFprobe metadata, dropped frames, and the fresh OBS log.
 9. Latest means last observed. Only a passing canary advances last-known-good; profile mutations require before/after ledger captures.
 10. Keep machine audits and receipts in gitignored `.legends-obs-kit/`; never commit user runtime evidence.
+11. Endpoint Security (EDR) guardrail: always run the prebuilt CLI via `node .\dist\index.js <command>` (or `lobs`); never spawn hidden background dev servers (`pnpm dev` / `Start-Process -WindowStyle Hidden`) or pass `-ExecutionPolicy Bypass`.

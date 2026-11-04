@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 - 2026-11-04
+
+- Track prebuilt `dist/` artifacts in the repository and remove the `corepack pnpm dev` fallback from `bin/doctor.ps1` so `node ./dist/index.js` always executes directly without spawning background `tsx` dev watchers.
+- Remove `-ExecutionPolicy Bypass` from `runPowerShellJson()` in `src/vision-switch.ts` and gate `user32.GetAsyncKeyState` mouse-button checks in `extras/cursor/legends_cursor_filter.lua` behind `enable_left_click` and `enable_right_click`.
+- Add explicit Endpoint Security (EDR) agent guardrails in `AGENTS.md`.
+
 ## 0.1.2 - 2026-10-19
 
 - Renamed the repository, package, CLI, and catalog identity to `legends-obs` (retaining `legends-obs-kit` and `lobs` as CLI/catalog compatibility aliases and preserving existing `.legends-obs-kit/` and `%LOCALAPPDATA%\LegendsOBSKit\state` ledgers).
