@@ -26,9 +26,8 @@ Regenerate from this folder with `python tools/render_assets.py` and
 
 ## Install
 
-1. Close OBS (or pass `-Force`).
-2. Run `install_into_obs.ps1` from this folder in PowerShell on Windows.
-   It copies the filter into the OBS scripts folder and backs up your scene collection.
+1. Close OBS.
+2. Back up your OBS scene collection, then copy `legends_cursor_filter.lua` and `legends_cursor_filter.effect` into your OBS scripts directory (or load `legends_cursor_filter.lua` via **Tools -> Scripts** in OBS).
 3. In OBS, add the `Legends Cursor Filter` video filter to your display or window capture source.
 
 ## License

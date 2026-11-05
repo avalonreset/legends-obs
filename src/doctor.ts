@@ -17,7 +17,7 @@ import type { JsonObject, JsonValue } from "./types.js";
 
 async function commandVersion(command: string): Promise<string | null> {
   return await new Promise((resolve) => {
-    const child = spawn(command, ["-version"], { windowsHide: true, shell: false });
+    const child = spawn(command, ["-version"], { shell: false });
     let stdout = "";
     child.stdout.on("data", (chunk) => { stdout += String(chunk); });
     child.on("error", () => resolve(null));

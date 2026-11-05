@@ -91,8 +91,8 @@ The switcher maps panel pairs `A/B` and `C/D` to OBS scenes `panel-ab` and `pane
 # Offline plan with an explicit panel sample.
 node .\dist\index.js vision-switch:plan --panel C --current-scene panel-ab --pretty
 
-# Configure an optional PowerShell sensor that emits panel JSON.
-$env:LEGENDS_OBS_PANEL_SENSOR = "C:\path\to\Get-ActivePanel.ps1"
+# Configure an optional JSON or Node sensor that emits panel JSON.
+$env:LEGENDS_OBS_PANEL_SENSOR = "C:\path\to\active-panel.json"
 node .\dist\index.js vision-switch:status --pretty
 
 # Arm state, then run a dry tick.

@@ -22,7 +22,7 @@ Install with `cto-legends install legends-obs`, then follow the module recipe th
 
 Ask your agent to inspect your recording setup, explain what changed since a known-good recording, or plan a hardware-appropriate profile. The module keeps rollback snapshots and checks the resulting recording instead of treating a successful settings change as proof that the output works.
 
-[recipes](docs/RECIPES.md) · [troubleshooting](docs/TROUBLESHOOTING.md) · [agent setup](docs/AGENTS-MATRIX.md) · [settings history](docs/AUDIT-LEDGER.md) · [safety contract](docs/SAFETY.md)
+[agent recipe](docs/AGENT-RECIPE.md) · [recipes](docs/RECIPES.md) · [troubleshooting](docs/TROUBLESHOOTING.md) · [agent setup](docs/AGENTS-MATRIX.md) · [settings history](docs/AUDIT-LEDGER.md) · [safety contract](docs/SAFETY.md)
 
 ## Why use this with an agent?
 
@@ -60,14 +60,14 @@ Live compatibility was most recently verified with OBS Studio 32.2.2 and obs-web
 
 ## Install a release
 
-Download `avalonreset-legends-obs-0.1.3.tgz` and `SHA256SUMS.txt` from
-[v0.1.3](https://github.com/avalonreset/legends-obs/releases/tag/v0.1.3).
-Compare `Get-FileHash .\avalonreset-legends-obs-0.1.3.tgz -Algorithm SHA256`
+Download `avalonreset-legends-obs-0.1.4.tgz` and `SHA256SUMS.txt` from
+[v0.1.4](https://github.com/avalonreset/legends-obs/releases/tag/v0.1.4).
+Compare `Get-FileHash .\avalonreset-legends-obs-0.1.4.tgz -Algorithm SHA256`
 with the checksum file, then extract into a new directory:
 
 ```powershell
 New-Item -ItemType Directory legends-obs-release
-tar -xzf .\avalonreset-legends-obs-0.1.3.tgz -C .\legends-obs-release
+tar -xzf .\avalonreset-legends-obs-0.1.4.tgz -C .\legends-obs-release
 Set-Location .\legends-obs-release\package
 node .\dist\index.js manifest --pretty
 ```

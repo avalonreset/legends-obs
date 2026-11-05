@@ -29,5 +29,6 @@ jobs:
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
+      - run: python scripts/check_release.py
       - run: pnpm pack:check
       - run: pnpm release:check

@@ -19,7 +19,6 @@ function run(command, args, cwd, env = process.env) {
     cwd,
     env,
     encoding: "utf8",
-    windowsHide: true,
   });
   assert.equal(result.status, 0, `${command} ${args.join(" ")} failed:\n${result.error?.message || result.stderr || result.stdout}`);
   return result.stdout.trim();
@@ -43,9 +42,9 @@ try {
   const skill = await readFile(path.join(packageRoot, "skills", "cto-legends", "SKILL.md"), "utf8");
   assert.match(skill, /^---\r?\nname: cto-legends\r?\n/s);
 
-  const doctor = await readFile(path.join(packageRoot, "bin", "doctor.ps1"), "utf8");
-  assert.match(doctor, /dist\\index\.js/);
-  assert.doesNotMatch(doctor, /E:\\/i);
+  const recipe = await readFile(path.join(packageRoot, "docs", "AGENT-RECIPE.md"), "utf8");
+  assert.match(recipe, /EDR and Security Guardrails/);
+  assert.doesNotMatch(recipe, /E:\\/i);
 
   console.log(JSON.stringify({
     ok: true,

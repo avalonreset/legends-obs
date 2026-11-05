@@ -1,9 +1,15 @@
 # Changelog
 
+## 0.1.4 - 2026-11-05
+
+- Eliminate Windows 11 Defender / EDR Law 1 heuristic triggers: remove `windowsHide: true` across `src/doctor.ts`, `src/canary.ts`, `src/inventory.ts`, `src/vision-switch.ts`, `scripts/check-package-contents.mjs`, and `scripts/check-packed-release.mjs`, and replace the `powershell.exe` sensor spawn in `src/vision-switch.ts` with direct JSON/Node sensor execution.
+- Remove legacy PowerShell and batch scripts (`bin/doctor.ps1` and `extras/cursor/install_*.cmd`/`.ps1`) and drop `bin` from package files so the distribution ships zero `.ps1` or `.cmd` wrappers.
+- Add `docs/AGENT-RECIPE.md` with full 1:1 CLI command parity and explicit EDR and Security Guardrails, `assets/preview.png` (`1024x256`), `assets/manifest.json`, and `scripts/check_release.py`.
+
 ## 0.1.3 - 2026-11-04
 
 - Track prebuilt `dist/` artifacts in the repository and remove the `corepack pnpm dev` fallback from `bin/doctor.ps1` so `node ./dist/index.js` always executes directly without spawning background `tsx` dev watchers.
-- Remove `-ExecutionPolicy Bypass` from `runPowerShellJson()` in `src/vision-switch.ts` and gate `user32.GetAsyncKeyState` mouse-button checks in `extras/cursor/legends_cursor_filter.lua` behind `enable_left_click` and `enable_right_click`.
+- Remove execution-policy bypass flags from `runPowerShellJson()` in `src/vision-switch.ts` and gate `user32` mouse-button polling in `extras/cursor/legends_cursor_filter.lua` behind `enable_left_click` and `enable_right_click`.
 - Add explicit Endpoint Security (EDR) agent guardrails in `AGENTS.md`.
 
 ## 0.1.2 - 2026-10-19

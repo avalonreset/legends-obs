@@ -8,7 +8,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 const required = [
   "dist",
-  "bin",
   "docs",
   "presets/hdr-4k60-av1-balanced.json",
   "presets/hdr-4k60-av1-hybrid-mp4.json",
@@ -51,7 +50,6 @@ const npmPrefix = process.platform === "win32"
 const packResult = spawnSync(npmCommand, [...npmPrefix, "pack", "--dry-run", "--json", "--ignore-scripts"], {
   cwd: root,
   encoding: "utf8",
-  windowsHide: true,
 });
 assert.equal(packResult.status, 0, `npm pack --dry-run failed: ${packResult.error?.message || packResult.stderr || packResult.stdout}`);
 const packReport = JSON.parse(packResult.stdout);
@@ -60,7 +58,7 @@ const packedFiles = packReport[0].files.map((entry) => String(entry.path).replac
 for (const forbidden of ["node_modules/", ".legends-obs-kit/", ".codex-tmp/", ".env", "scripts/fix-nvenc", "scripts/wire-kick"]) {
   assert(!packedFiles.some((file) => file === forbidden || file.startsWith(forbidden)), `packed artifact contains forbidden path: ${forbidden}`);
 }
-for (const requiredFile of ["dist/index.js", "presets/hdr-4k60-av1-balanced.json", "presets/hdr-4k60-av1-hybrid-mp4.json", "skills/cto-legends/SKILL.md", ".legends-module", ".legends-router-pin", "bin/doctor.ps1", "LICENSE", "README.md"]) {
+for (const requiredFile of ["dist/index.js", "docs/AGENT-RECIPE.md", "presets/hdr-4k60-av1-balanced.json", "presets/hdr-4k60-av1-hybrid-mp4.json", "skills/cto-legends/SKILL.md", ".legends-module", ".legends-router-pin", "LICENSE", "README.md"]) {
   assert(packedFiles.includes(requiredFile), `packed artifact missing ${requiredFile}`);
 }
 
@@ -75,7 +73,7 @@ async function textFiles(directory) {
   return files;
 }
 
-const publicRoots = ["bin", "dist", "docs", "presets", "skills", "src", "test"].map((entry) => path.join(root, entry));
+const publicRoots = ["dist", "docs", "presets", "skills", "src", "test"].map((entry) => path.join(root, entry));
 const publicFiles = [
   path.join(root, "AGENTS.md"),
   path.join(root, "CHANGELOG.md"),

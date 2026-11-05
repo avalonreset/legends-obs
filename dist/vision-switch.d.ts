@@ -161,8 +161,8 @@ export declare function sampleFromPanelFlag(panel: Panel, extras?: {
     title?: string;
 }): ActivePanelSample;
 /**
- * Invoke Shell Kit Get-ActivePanel.ps1 (deterministic Win32 geometry).
- * No LLM. Fails closed if script missing or output unparseable.
+ * Read active panel JSON from a sensor file or Node/native sensor script.
+ * No LLM. Fails closed if sensor is missing or output is unparseable.
  */
 export declare function sampleActivePanelFromShell(options?: {
     scriptPath?: string;

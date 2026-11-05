@@ -31,7 +31,7 @@ export const DEFAULT_ACTIVE_PANEL_SCRIPT =
   process.env.LEGENDS_OBS_PANEL_SENSOR ||
   process.env.LEGENDS_SHELL_ACTIVE_PANEL ||
   (process.env.LEGENDS_SHELL_KIT_ROOT
-    ? path.join(process.env.LEGENDS_SHELL_KIT_ROOT, "scripts", "Get-ActivePanel.ps1")
+    ? path.join(process.env.LEGENDS_SHELL_KIT_ROOT, "scripts", "get-active-panel.mjs")
     : undefined);
 
 export const STATE_FILE_NAME = "vision-switch-state.json";
@@ -596,8 +596,8 @@ export function sampleFromPanelFlag(
 }
 
 /**
- * Invoke Shell Kit Get-ActivePanel.ps1 (deterministic Win32 geometry).
- * No LLM. Fails closed if script missing or output unparseable.
+ * Read active panel JSON from a sensor file or Node/native sensor script.
+ * No LLM. Fails closed if sensor is missing or output is unparseable.
  */
 export async function sampleActivePanelFromShell(options?: {
   scriptPath?: string;
@@ -605,35 +605,35 @@ export async function sampleActivePanelFromShell(options?: {
 }): Promise<ActivePanelSample> {
   const scriptPath = options?.scriptPath ?? DEFAULT_ACTIVE_PANEL_SCRIPT;
   if (!scriptPath) {
-    throw new Error("No panel sensor is configured; pass --panel A|B|C|D or set LEGENDS_OBS_PANEL_SENSOR to a JSON-emitting PowerShell script");
+    throw new Error("No panel sensor is configured; pass --panel A|B|C|D or set LEGENDS_OBS_PANEL_SENSOR to a JSON file or Node sensor script");
   }
   const timeoutMs = options?.timeoutMs ?? 12000;
-  const stdout = await runPowerShellJson(scriptPath, timeoutMs);
+  const stdout = scriptPath.toLowerCase().endsWith(".json")
+    ? (await readFile(scriptPath, "utf8")).trim()
+    : await runSensorJson(scriptPath, timeoutMs);
   let parsed: unknown;
   try {
     parsed = JSON.parse(stdout);
   } catch {
-    // PowerShell sometimes emits BOM or leading noise; take last JSON object
     const start = stdout.lastIndexOf("{");
     const end = stdout.lastIndexOf("}");
-    if (start < 0 || end <= start) throw new Error(`Get-ActivePanel returned non-JSON: ${stdout.slice(0, 200)}`);
+    if (start < 0 || end <= start) throw new Error(`Active panel sensor returned non-JSON: ${stdout.slice(0, 200)}`);
     parsed = JSON.parse(stdout.slice(start, end + 1));
   }
   return parseActivePanelJson(parsed, "shell");
 }
 
-function runPowerShellJson(scriptPath: string, timeoutMs: number): Promise<string> {
+function runSensorJson(scriptPath: string, timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn(
-      "powershell.exe",
-      ["-NoProfile", "-NonInteractive", "-File", scriptPath],
-      { windowsHide: true },
-    );
+    const isNodeScript = /\.(?:mjs|cjs|js)$/i.test(scriptPath);
+    const command = isNodeScript ? process.execPath : scriptPath;
+    const args = isNodeScript ? [scriptPath] : [];
+    const child = spawn(command, args, { shell: false });
     let stdout = "";
     let stderr = "";
     const timer = setTimeout(() => {
       child.kill();
-      reject(new Error(`Get-ActivePanel timed out after ${timeoutMs}ms (${scriptPath})`));
+      reject(new Error(`Active panel sensor timed out after ${timeoutMs}ms (${scriptPath})`));
     }, timeoutMs);
     child.stdout.on("data", (chunk: Buffer | string) => {
       stdout += String(chunk);
@@ -648,7 +648,7 @@ function runPowerShellJson(scriptPath: string, timeoutMs: number): Promise<strin
     child.on("close", (code) => {
       clearTimeout(timer);
       if (code !== 0) {
-        reject(new Error(`Get-ActivePanel exit ${code}: ${stderr || stdout || "no output"}`));
+        reject(new Error(`Active panel sensor exit ${code}: ${stderr || stdout || "no output"}`));
         return;
       }
       resolve(stdout.trim());

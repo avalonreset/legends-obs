@@ -7,7 +7,7 @@ import { ObsWebSocketClient } from "./obs-websocket.js";
 import { getPrimaryMicrophoneStatus } from "./audio.js";
 async function commandVersion(command) {
     return await new Promise((resolve) => {
-        const child = spawn(command, ["-version"], { windowsHide: true, shell: false });
+        const child = spawn(command, ["-version"], { shell: false });
         let stdout = "";
         child.stdout.on("data", (chunk) => { stdout += String(chunk); });
         child.on("error", () => resolve(null));

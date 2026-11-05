@@ -1,0 +1,31 @@
+{
+  "product": "legends-obs",
+  "banner_template": "legends-type-v1",
+  "social_template": "legends-social-v1",
+  "subtitle": "agent-operated recording with hardware checks and verified output",
+  "font": "Legends Regular",
+  "font_sha256": "3769f0f76477a7d9e2e6cb40422dedacb56c9ab1a6f7beee89b2b9ba6b8091ee",
+  "font_redistributed": false,
+  "files": [
+    {
+      "name": "banner.png",
+      "bytes": 65565,
+      "sha256": "6183c594ee81b1d4131febbc290a5318a833fba65a704a4df74e74d9ee9955ad"
+    },
+    {
+      "name": "banner.webp",
+      "bytes": 24494,
+      "sha256": "c5203a6dc80c2725a79bf9ab5991ffa97c968319aba9241c2c736e19f20370e5"
+    },
+    {
+      "name": "preview.png",
+      "bytes": 23283,
+      "sha256": "9468f4088ad71ad16e03ec195bfd78965f510c7b4bb68d058fdc0c60140abca5"
+    },
+    {
+      "name": "social-preview.png",
+      "bytes": 21380,
+      "sha256": "119bbadf994169a4f9a74bdb6e47beaedd31ba6ba36699d305d1407d2a1e0c7a"
+    }
+  ]
+}

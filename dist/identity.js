@@ -1,6 +1,6 @@
 export const DISPLAY_NAME = "legends-obs";
 export const CLI_NAME = "legends-obs";
 export const SHORT_CLI_NAME = "lobs";
-export const VERSION = "0.1.3";
+export const VERSION = "0.1.4";
 export const DEFAULT_PRESET_ID = "hdr-4k60-av1-hybrid-mp4";
 //# sourceMappingURL=identity.js.map

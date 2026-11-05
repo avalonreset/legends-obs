@@ -49,7 +49,7 @@ export async function stopRecordingAndVerifyIdle(client, watchMs = 5_000, pollMs
 }
 async function runJson(command, args) {
     return await new Promise((resolve, reject) => {
-        const child = spawn(command, args, { windowsHide: true, shell: false });
+        const child = spawn(command, args, { shell: false });
         let stdout = "";
         let stderr = "";
         child.stdout.on("data", (chunk) => { stdout += String(chunk); });

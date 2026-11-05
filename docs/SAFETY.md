@@ -9,7 +9,7 @@
 - **Readback:** apply fails if the preset does not read back exactly; failed apply attempts automatic rollback.
 - **No credential copies:** WebSocket password and OBS service tokens stay in OBS's config only.
 - **No stream canary:** canaries use local recording, never streaming.
-- **Bounded duration:** canaries accept only 3–30 seconds.
+- **Bounded duration:** canaries accept only 3-30 seconds.
 - **Optional primary microphone gate:** audio health is always reported. `record:start` and `record:canary` require a healthy Mic/Aux only with `--require-microphone` or `LEGENDS_OBS_REQUIRE_PRIMARY_MICROPHONE=true`.
 - **Start readback:** recording start waits through encoder initialization before deciding whether OBS is actually active.
 - **Evidence:** `WORKS` requires a healthy primary microphone endpoint, codec/dimensions/fps/bit-depth/color tags, clean fresh log, and bounded frame deltas.

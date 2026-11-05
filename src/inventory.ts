@@ -20,7 +20,7 @@ import type { JsonObject, JsonValue, ObsPreset } from "./types.js";
 
 async function commandOutput(command: string, args: string[]): Promise<string | null> {
   return await new Promise((resolve) => {
-    const child = spawn(command, args, { windowsHide: true, shell: false });
+    const child = spawn(command, args, { shell: false });
     let stdout = "";
     child.stdout.on("data", (chunk) => { stdout += String(chunk); });
     child.on("error", () => resolve(null));
