@@ -1,13 +1,17 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { parseArgs } from "../src/args.js";
 import { resolveConfig } from "../src/config.js";
 import { buildManifest } from "../src/manifest.js";
+import { isValidPort, readObsWebSocketConfig } from "../src/obs-config.js";
+import { normalizeLoopbackHost } from "../src/obs-websocket.js";
 import { containsSecretMarker, redactText, redactUnknown } from "../src/redact.js";
 import { verifyReceipts, writeReceipt } from "../src/receipts.js";
+import { readSafeJsonFile, validateLocalMediaPath } from "../src/safe-io.js";
+import { sampleActivePanelFromShell } from "../src/vision-switch.js";
 
 test("argument parser keeps confirmation explicit", () => {
   const parsed = parseArgs(["profile:apply", "--preset", "hdr-4k60-av1-balanced", "--confirm", "--pretty"]);
@@ -53,13 +57,87 @@ test("redactor removes credential-shaped keys and values", () => {
   assert.equal(containsSecretMarker({ safe: "ordinary text" }), false);
 });
 
-test("manifest has no ambient MCP and marks every write", () => {
+test("manifest has no ambient MCP, marks every write, and matches CLI/recipe command sets 1:1", async () => {
   const manifest = buildManifest();
   assert.equal(manifest.ambientMcp, false);
   const commands = manifest.commands as Array<{ command: string; mutation: boolean }>;
   for (const name of ["audio:bind", "profile:apply", "profile:refresh", "profile:rollback", "record:start", "record:stop", "record:canary", "vision-switch:tick", "vision-switch:daemon"]) {
     assert.equal(commands.find((command) => command.command === name)?.mutation, true, name);
   }
+  const manifestSet = new Set(commands.map((c) => c.command));
+  assert.equal(manifestSet.has("logs:latest"), true);
+
+  const indexSource = await readFile(new URL("../src/index.ts", import.meta.url), "utf8");
+  const recipeSource = await readFile(new URL("../docs/AGENT-RECIPE.md", import.meta.url), "utf8");
+  for (const cmd of manifestSet) {
+    assert.equal(indexSource.includes(`"${cmd}"`), true, `src/index.ts missing ${cmd}`);
+    assert.equal(recipeSource.includes(cmd), true, `docs/AGENT-RECIPE.md missing ${cmd}`);
+  }
+});
+
+test("validateLocalMediaPath rejects option flags, URLs, protocols, and UNC shares", async () => {
+  await assert.rejects(() => validateLocalMediaPath("-print_format"), /option-prefixed/);
+  await assert.rejects(() => validateLocalMediaPath("http://127.0.0.1:8080/clip.mp4"), /URL or protocol/);
+  await assert.rejects(() => validateLocalMediaPath("concat:a.mp4|b.mp4"), /URL or protocol/);
+  await assert.rejects(() => validateLocalMediaPath("\\\\remote-host\\share\\clip.mp4"), /UNC network/);
+  await assert.rejects(() => validateLocalMediaPath("relative/clip.mp4"), /absolute local path/);
+});
+
+test("loopback host and port validators enforce strict local boundaries", async () => {
+  assert.equal(normalizeLoopbackHost("127.0.0.1"), "127.0.0.1");
+  assert.equal(normalizeLoopbackHost("::1"), "[::1]");
+  assert.equal(normalizeLoopbackHost("[::1]"), "[::1]");
+  assert.equal(normalizeLoopbackHost("localhost"), "localhost");
+  assert.throws(() => normalizeLoopbackHost("192.168.1.50"), /Refusing non-loopback/);
+  assert.throws(() => normalizeLoopbackHost("127.0.0.1:4455/evil#"), /Refusing non-loopback/);
+
+  assert.equal(isValidPort(4455), true);
+  assert.equal(isValidPort(0), false);
+  assert.equal(isValidPort(70000), false);
+  assert.equal(isValidPort(Number.NaN), false);
+  assert.equal(isValidPort(4455.5), false);
+
+  const directory = await mkdtemp(path.join(os.tmpdir(), "legends-obs-ws-cfg-"));
+  try {
+    const badCfg = path.join(directory, "config.json");
+    await writeFile(badCfg, JSON.stringify({ server_enabled: true, server_port: 70000, auth_required: true }), "utf8");
+    await assert.rejects(() => readObsWebSocketConfig(badCfg), /Invalid OBS WebSocket config/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("sampleActivePanelFromShell and readSafeJsonFile enforce extension, size, and containment guards", async () => {
+  await assert.rejects(
+    () => sampleActivePanelFromShell({ scriptPath: "C:\\Windows\\System32\\cmd.exe" }),
+    /Refusing unsupported active panel sensor extension/,
+  );
+  const directory = await mkdtemp(path.join(os.tmpdir(), "legends-obs-safe-io-"));
+  try {
+    const inside = path.join(directory, "panel.json");
+    await writeFile(inside, JSON.stringify({ panel: "A", process: "code" }), "utf8");
+    const sample = await sampleActivePanelFromShell({ scriptPath: inside });
+    assert.equal(sample.panel, "A");
+
+    const outside = path.join(os.tmpdir(), `outside-${Date.now()}.json`);
+    await writeFile(outside, JSON.stringify({ ok: true }), "utf8");
+    try {
+      await assert.rejects(
+        () => readSafeJsonFile(outside, 1024, directory),
+        /escapes allowed directory/,
+      );
+    } finally {
+      await rm(outside, { force: true });
+    }
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("cursor filter lua defaults Win32 click ripples to false", async () => {
+  const lua = await readFile(new URL("../extras/cursor/legends_cursor_filter.lua", import.meta.url), "utf8");
+  assert.match(lua, /\benable_left_click\s*=\s*false\b/);
+  assert.match(lua, /\benable_right_click\s*=\s*false\b/);
 });
 
 test("receipts are redacted and verify clean", async () => {

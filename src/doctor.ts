@@ -1,6 +1,5 @@
 import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
-import { spawn } from "node:child_process";
 import { readAuditStatus } from "./audit.js";
 import type { KitConfig } from "./config.js";
 import {
@@ -13,16 +12,17 @@ import {
 } from "./obs-config.js";
 import { ObsWebSocketClient } from "./obs-websocket.js";
 import { getPrimaryMicrophoneStatus } from "./audio.js";
+import { runBoundedCommand } from "./safe-io.js";
 import type { JsonObject, JsonValue } from "./types.js";
 
 async function commandVersion(command: string): Promise<string | null> {
-  return await new Promise((resolve) => {
-    const child = spawn(command, ["-version"], { shell: false });
-    let stdout = "";
-    child.stdout.on("data", (chunk) => { stdout += String(chunk); });
-    child.on("error", () => resolve(null));
-    child.on("close", (code) => resolve(code === 0 ? stdout.split(/\r?\n/)[0] ?? command : null));
-  });
+  try {
+    const res = await runBoundedCommand(command, ["-version"], { timeoutMs: 10_000, maxBytes: 1024 * 1024 });
+    if (res.timedOut || res.overflowed || res.code !== 0) return null;
+    return res.stdout.split(/\r?\n/)[0] ?? command;
+  } catch {
+    return null;
+  }
 }
 
 function check(name: string, ok: boolean, detail: unknown, required = true): JsonObject {

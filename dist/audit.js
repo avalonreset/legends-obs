@@ -3,6 +3,7 @@ import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promise
 import path from "node:path";
 import { collectInventory } from "./inventory.js";
 import { containsSecretMarker, redactUnknown } from "./redact.js";
+import { readSafeJsonFile } from "./safe-io.js";
 const AUDIT_KIND = "legends-obs-settings-audit";
 const POINTER_KIND = "legends-obs-audit-pointer";
 const AUDIT_VERSION = 1;
@@ -291,7 +292,7 @@ async function verifiedCanary(stateDir, verification) {
     if (receiptPath !== receiptRoot && !receiptPath.startsWith(`${receiptRoot}${path.sep}`)) {
         throw new Error("Verified-good audits require a canary receipt from this kit state directory");
     }
-    const receipt = JSON.parse(await readFile(receiptPath, "utf8"));
+    const receipt = await readSafeJsonFile(receiptPath, 5 * 1024 * 1024, receiptRoot);
     if (receipt.ok !== true || receipt.classification !== "WORKS" || receipt.command !== "record:canary") {
         throw new Error("Last-known-good can only advance from a passing record:canary receipt");
     }
@@ -362,13 +363,13 @@ export async function captureAudit(client, config, preset, options) {
 async function readPointer(machineDirectory, pointerName) {
     const pointerPath = path.join(machineDirectory, `${pointerName}.json`);
     try {
-        const pointer = JSON.parse(await readFile(pointerPath, "utf8"));
+        const pointer = await readSafeJsonFile(pointerPath, 1024 * 1024, machineDirectory);
         if (pointer.kind !== POINTER_KIND || pointer.version !== AUDIT_VERSION)
             throw new Error(`Invalid audit pointer: ${pointerPath}`);
         const target = path.resolve(machineDirectory, String(pointer.target));
         if (target !== machineDirectory && !target.startsWith(`${machineDirectory}${path.sep}`))
             throw new Error(`Audit pointer escapes machine directory: ${pointerPath}`);
-        const document = JSON.parse(await readFile(target, "utf8"));
+        const document = await readSafeJsonFile(target, 10 * 1024 * 1024, machineDirectory);
         if (document.kind !== AUDIT_KIND || document.version !== AUDIT_VERSION)
             throw new Error(`Invalid audit target: ${target}`);
         return { pointerPath, target, pointer, document };
@@ -377,6 +378,9 @@ async function readPointer(machineDirectory, pointerName) {
         const code = error.code;
         if (code === "ENOENT")
             return null;
+        if (error instanceof Error && /escapes allowed directory/i.test(error.message)) {
+            throw new Error(`Audit pointer escapes machine directory: ${pointerPath}`);
+        }
         throw error;
     }
 }

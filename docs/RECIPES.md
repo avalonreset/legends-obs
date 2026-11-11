@@ -60,7 +60,7 @@ Add `--require-microphone` to the canary when microphone capture is an acceptanc
 ```powershell
 try {
   $env:LEGENDS_OBS_DRY_RUN = "false"
-  node .\dist\index.js profile:rollback --snapshot ".legends-obs-kit\snapshots\<file>.json" --confirm --pretty
+  node .\dist\index.js profile:rollback --snapshot "$env:LOCALAPPDATA\LegendsOBS\state\snapshots\<file>.json" --confirm --pretty
 }
 finally {
   $env:LEGENDS_OBS_DRY_RUN = "true"
@@ -95,9 +95,9 @@ node .\dist\index.js vision-switch:plan --panel C --current-scene panel-ab --pre
 $env:LEGENDS_OBS_PANEL_SENSOR = "C:\path\to\active-panel.json"
 node .\dist\index.js vision-switch:status --pretty
 
-# Arm state, then run a dry tick.
+# Arm state, then run a dry tick (optional overrides: --process, --title, --arm/--armed, --disarm/--disarmed, --freeze, --unfreeze/--unfrozen).
 node .\dist\index.js vision-switch:arm --pretty
-node .\dist\index.js vision-switch:tick --panel C --pretty
+node .\dist\index.js vision-switch:tick --panel C --process chrome --title "Docs" --pretty
 ```
 
 Live cuts require all of: armed state, idle outputs, `LEGENDS_OBS_DRY_RUN=false`, and `--confirm`. Scene renames additionally require `--go <operator-authorization-note>`. The kit never changes Windows display mode and rejects automatic stretch-to-fill as a default policy.

@@ -5,6 +5,7 @@ import type { KitConfig } from "./config.js";
 import { collectInventory } from "./inventory.js";
 import type { ObsWebSocketClient } from "./obs-websocket.js";
 import { containsSecretMarker, redactUnknown } from "./redact.js";
+import { readSafeJsonFile } from "./safe-io.js";
 import type { JsonObject, JsonValue, ObsPreset } from "./types.js";
 
 const AUDIT_KIND = "legends-obs-settings-audit";
@@ -303,7 +304,7 @@ async function verifiedCanary(stateDir: string, verification: AuditCaptureOption
   if (receiptPath !== receiptRoot && !receiptPath.startsWith(`${receiptRoot}${path.sep}`)) {
     throw new Error("Verified-good audits require a canary receipt from this kit state directory");
   }
-  const receipt = JSON.parse(await readFile(receiptPath, "utf8")) as JsonObject;
+  const receipt = await readSafeJsonFile<JsonObject>(receiptPath, 5 * 1024 * 1024, receiptRoot);
   if (receipt.ok !== true || receipt.classification !== "WORKS" || receipt.command !== "record:canary") {
     throw new Error("Last-known-good can only advance from a passing record:canary receipt");
   }
@@ -381,16 +382,19 @@ export async function captureAudit(
 async function readPointer(machineDirectory: string, pointerName: string): Promise<JsonObject | null> {
   const pointerPath = path.join(machineDirectory, `${pointerName}.json`);
   try {
-    const pointer = JSON.parse(await readFile(pointerPath, "utf8")) as JsonObject;
+    const pointer = await readSafeJsonFile<JsonObject>(pointerPath, 1024 * 1024, machineDirectory);
     if (pointer.kind !== POINTER_KIND || pointer.version !== AUDIT_VERSION) throw new Error(`Invalid audit pointer: ${pointerPath}`);
     const target = path.resolve(machineDirectory, String(pointer.target));
     if (target !== machineDirectory && !target.startsWith(`${machineDirectory}${path.sep}`)) throw new Error(`Audit pointer escapes machine directory: ${pointerPath}`);
-    const document = JSON.parse(await readFile(target, "utf8")) as JsonObject;
+    const document = await readSafeJsonFile<JsonObject>(target, 10 * 1024 * 1024, machineDirectory);
     if (document.kind !== AUDIT_KIND || document.version !== AUDIT_VERSION) throw new Error(`Invalid audit target: ${target}`);
     return { pointerPath, target, pointer, document };
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code === "ENOENT") return null;
+    if (error instanceof Error && /escapes allowed directory/i.test(error.message)) {
+      throw new Error(`Audit pointer escapes machine directory: ${pointerPath}`);
+    }
     throw error;
   }
 }

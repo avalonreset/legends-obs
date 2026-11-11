@@ -1,6 +1,6 @@
 {
   "name": "@avalonreset/legends-obs",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Guarded, agent-first control and proof for OBS Studio on Windows.",
   "license": "MIT",
   "author": "Avalon Reset contributors",
@@ -46,8 +46,7 @@
     "README.md",
     "SECURITY.md",
     "SUPPORT.md",
-    "THIRD_PARTY_NOTICES.md",
-    "extras/cursor"
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

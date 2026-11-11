@@ -28,9 +28,9 @@ Legends OBS Cursor is an Avalon Reset project.
 
 - [`sqmw/MFCMouseEffect`](https://github.com/sqmw/MFCMouseEffect) was part of the
   earlier Windows cursor-highlighting research path and became the upstream for
-  the private Avalon Reset `AuraClick` port. I do not currently see direct
-  MFCMouseEffect source copied into this OBS Lua package, but it should still be
-  credited as part of the project history.
+  the private Avalon Reset `AuraClick` port. No direct MFCMouseEffect source
+  code is copied into this OBS Lua package; it is credited here as part of the
+  project research lineage.
 - Other cursor visibility tools evaluated during research included PowerToys
   Mouse Utilities, Keyviz, FriskyMouse, PointerFocus, MouseEffects, and OBS input
   overlay options.

@@ -60,14 +60,14 @@ Live compatibility was most recently verified with OBS Studio 32.2.2 and obs-web
 
 ## Install a release
 
-Download `avalonreset-legends-obs-0.1.4.tgz` and `SHA256SUMS.txt` from
-[v0.1.4](https://github.com/avalonreset/legends-obs/releases/tag/v0.1.4).
-Compare `Get-FileHash .\avalonreset-legends-obs-0.1.4.tgz -Algorithm SHA256`
+Download `avalonreset-legends-obs-0.1.5.tgz` and `SHA256SUMS.txt` from
+[v0.1.5](https://github.com/avalonreset/legends-obs/releases/tag/v0.1.5).
+Compare `Get-FileHash .\avalonreset-legends-obs-0.1.5.tgz -Algorithm SHA256`
 with the checksum file, then extract into a new directory:
 
 ```powershell
 New-Item -ItemType Directory legends-obs-release
-tar -xzf .\avalonreset-legends-obs-0.1.4.tgz -C .\legends-obs-release
+tar -xzf .\avalonreset-legends-obs-0.1.5.tgz -C .\legends-obs-release
 Set-Location .\legends-obs-release\package
 node .\dist\index.js manifest --pretty
 ```
@@ -134,7 +134,7 @@ Add `--require-microphone` to `record:start` or `record:canary` when a healthy p
 - **Control spine (`src/obs-websocket.ts`, `src/obs-config.ts`):** Authenticates directly to OBS Studio's loopback WebSocket v5 server using the local OBS configuration without printing or copying credentials.
 - **Hardware-specific settings ledger (`src/audit.ts`, `src/inventory.ts`):** Captures immutable, redacted snapshots of GPU adapters, loaded encoders, profile/global INI settings, scene graphs, and audio routing. Maintains separate pointers for `latest` (last observed) and `last-known-good` (canary-qualified).
 - **Transactional profile and audio mutations (`src/profile.ts`, `src/audio.ts`):** Verifies all outputs are idle, writes a rollback snapshot before any change, refreshes the active OBS video pipeline, and fails closed with automatic rollback if readback does not match.
-- **Canary proof (`src/record.ts`):** Records a bounded local clip, probes the output container with FFprobe, checks render/output skipped-frame counters and fresh OBS logs, and advances `last-known-good` only when every check passes.
+- **Canary proof (`src/canary.ts`):** Records a bounded local clip, probes the output container with FFprobe, checks render/output skipped-frame counters and fresh OBS logs, and advances `last-known-good` only when every check passes.
 
 New installs store machine audits, rollback snapshots, and receipts under `%LOCALAPPDATA%\LegendsOBS\state` (reusing existing `%LOCALAPPDATA%\LegendsOBSKit\state` or gitignored `.legends-obs-kit/` directories when present). Override the location with `LEGENDS_OBS_STATE_DIR`.
 
@@ -148,7 +148,7 @@ See [Troubleshooting](docs/TROUBLESHOOTING.md), [First run](docs/FIRST-RUN.md), 
 
 ## Optional extra: animated cursor overlay
 
-`extras/cursor/` carries the Legends Cursor Filter: halo, momentum ticks, click ripples, comet trail, and glow. Windows only, fully optional. See [`extras/cursor/README.md`](extras/cursor/README.md). That extra is GPL-2.0-or-later and separable; the core `legends-obs` package stays MIT.
+`extras/cursor/` in the repository checkout carries the Legends Cursor Filter: halo, momentum ticks, opt-in click ripples, comet trail, and glow. Windows only, fully optional. See [`extras/cursor/README.md`](extras/cursor/README.md). That extra is GPL-2.0-or-later and excluded from the `avalonreset-legends-obs-*.tgz` npm tarball so the core `legends-obs` package remains 100% pure MIT.
 
 <p align="center">
   <img src="extras/cursor/demo/legends-cursor-demo.gif" alt="Animated demo of the Legends Cursor Filter: halo, momentum ticks, click ripples, and comet trail" width="100%">

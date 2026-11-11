@@ -160,10 +160,6 @@ export declare function sampleFromPanelFlag(panel: Panel, extras?: {
     process?: string;
     title?: string;
 }): ActivePanelSample;
-/**
- * Read active panel JSON from a sensor file or Node/native sensor script.
- * No LLM. Fails closed if sensor is missing or output is unparseable.
- */
 export declare function sampleActivePanelFromShell(options?: {
     scriptPath?: string;
     timeoutMs?: number;

@@ -29,6 +29,7 @@ Regenerate from this folder with `python tools/render_assets.py` and
 1. Close OBS.
 2. Back up your OBS scene collection, then copy `legends_cursor_filter.lua` and `legends_cursor_filter.effect` into your OBS scripts directory (or load `legends_cursor_filter.lua` via **Tools -> Scripts** in OBS).
 3. In OBS, add the `Legends Cursor Filter` video filter to your display or window capture source.
+4. Left-click and right-click ripples are disabled by default (`enable_left_click = false`, `enable_right_click = false`) so the Lua script performs zero Win32 mouse-button polling unless you explicitly check **Enable left-click ripple (opt-in Win32 button state)** or **Enable right-click ripple (opt-in Win32 button state)** in the filter properties.
 
 ## License
 

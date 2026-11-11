@@ -1,5 +1,6 @@
 import type { JsonObject } from "./types.js";
-import type { ObsWebSocketConfig } from "./obs-config.js";
+import { type ObsWebSocketConfig } from "./obs-config.js";
+export declare function normalizeLoopbackHost(host: string): string;
 export declare class ObsWebSocketClient {
     private readonly socket;
     private readonly pending;

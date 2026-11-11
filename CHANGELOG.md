@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5 - 2026-11-11
+
+- Disable `user32` mouse-button polling by default (`enable_left_click = false`, `enable_right_click = false`) in `extras/cursor/legends_cursor_filter.lua` behind explicit opt-in OBS property toggles (Windows 11 Defender / EDR Law 4), scan `.lua` files in `scripts/check_release.py`, and exclude the GPL-2.0-or-later `extras/cursor/` folder from the MIT npm tarball (`package.json` `"files"`).
+- Harden `ffprobe` and `nvidia-smi` subprocess execution across `src/inventory.ts`, `src/canary.ts`, and `src/doctor.ts` with `validateLocalMediaPath()` (refusing `-`-prefixed flags, URL/protocol schemes, UNC network paths, and symlinks), `"-i"` input separators (`CWE-88` / `CWE-918`), `10_000 ms` execution timeouts, and `1 MiB` output caps (`CWE-400`).
+- Harden `ObsWebSocketClient.connect()` (`src/obs-websocket.ts`) and `readObsWebSocketConfig()` (`src/obs-config.ts`) with a strict loopback host allowlist (`127.0.0.1`, `::1`, `[::1]`, `localhost`), integer port validation (`1..65535`), and conditional challenge-response authentication only when `auth_required === true` (`CWE-319` / `CWE-200`).
+- Restrict `sampleActivePanelFromShell()` (`src/vision-switch.ts`) to verified regular non-symlink `.json` or `.mjs/.cjs/.js` Node sensor files with a `64 KiB` output cap (`CWE-78`), and enforce symlink refusal, `realpath()` directory containment, and size bounds via `readSafeJsonFile()` across `src/profile.ts`, `src/audit.ts`, and `src/obs-config.ts` (`CWE-59`).
+- Add `logs:latest` to `src/manifest.ts`, add `manifest` and `agent:context` to `printHelp()`, document all 9 Vision Switcher override flags in `docs/AGENT-RECIPE.md` and `docs/RECIPES.md`, align state directory documentation (`%LOCALAPPDATA%\LegendsOBS\state`), and pin GitHub Actions workflows to 40-character commit SHAs with `contents: read` permissions.
+
 ## 0.1.4 - 2026-11-05
 
 - Eliminate Windows 11 Defender / EDR Law 1 heuristic triggers: remove `windowsHide: true` across `src/doctor.ts`, `src/canary.ts`, `src/inventory.ts`, `src/vision-switch.ts`, `scripts/check-package-contents.mjs`, and `scripts/check-packed-release.mjs`, and replace the `powershell.exe` sensor spawn in `src/vision-switch.ts` with direct JSON/Node sensor execution.

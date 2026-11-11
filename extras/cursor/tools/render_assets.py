@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
-DEMO = ASSETS / "demo"
+DEMO = ROOT / "demo"
 SCREENSHOTS = ASSETS / "screenshots"
 
 FPS = 24

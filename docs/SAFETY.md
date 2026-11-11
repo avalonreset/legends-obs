@@ -13,5 +13,5 @@
 - **Optional primary microphone gate:** audio health is always reported. `record:start` and `record:canary` require a healthy Mic/Aux only with `--require-microphone` or `LEGENDS_OBS_REQUIRE_PRIMARY_MICROPHONE=true`.
 - **Start readback:** recording start waits through encoder initialization before deciding whether OBS is actually active.
 - **Evidence:** `WORKS` requires a healthy primary microphone endpoint, codec/dimensions/fps/bit-depth/color tags, clean fresh log, and bounded frame deltas.
-- **Local state:** snapshots, audits, pointers, and receipts live under gitignored `.legends-obs-kit/`.
+- **Local state:** snapshots, audits, pointers, and receipts live under `%LOCALAPPDATA%\LegendsOBS\state` (reusing legacy `%LOCALAPPDATA%\LegendsOBSKit\state` or gitignored `.legends-obs-kit/` when present, or `LEGENDS_OBS_STATE_DIR`).
 - **Deliberate exclusions:** never inventory stream-service credentials, stream keys, or plugin-private settings.

@@ -18,10 +18,10 @@ The ledger deliberately excludes stream-service settings, service credentials, s
 
 ## Pointer semantics
 
-The immutable records live at:
+The immutable records live under `%LOCALAPPDATA%\LegendsOBS\state` (or legacy `.legends-obs-kit/` / `LEGENDS_OBS_STATE_DIR`) at:
 
 ```text
-.legends-obs-kit\audits\<machine-key>\snapshots\<timestamp>-<reason>.json
+%LOCALAPPDATA%\LegendsOBS\state\audits\<machine-key>\snapshots\<timestamp>-<reason>.json
 ```
 
 Two small pointers make fast decisions safe:

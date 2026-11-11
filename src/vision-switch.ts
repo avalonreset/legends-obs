@@ -10,6 +10,7 @@ import { spawn } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as wait } from "node:timers/promises";
+import { assertSafeRegularFile, readSafeJsonFile } from "./safe-io.js";
 
 export type Panel = "A" | "B" | "C" | "D";
 export type Pair = "AB" | "CD";
@@ -596,9 +597,11 @@ export function sampleFromPanelFlag(
 }
 
 /**
- * Read active panel JSON from a sensor file or Node/native sensor script.
- * No LLM. Fails closed if sensor is missing or output is unparseable.
+ * Read active panel JSON from a sensor JSON file or Node sensor script (.mjs/.cjs/.js).
+ * No LLM and no arbitrary native binary execution. Fails closed if sensor is missing or output is unparseable.
  */
+const MAX_SENSOR_BYTES = 64 * 1024;
+
 export async function sampleActivePanelFromShell(options?: {
   scriptPath?: string;
   timeoutMs?: number;
@@ -608,9 +611,16 @@ export async function sampleActivePanelFromShell(options?: {
     throw new Error("No panel sensor is configured; pass --panel A|B|C|D or set LEGENDS_OBS_PANEL_SENSOR to a JSON file or Node sensor script");
   }
   const timeoutMs = options?.timeoutMs ?? 12000;
-  const stdout = scriptPath.toLowerCase().endsWith(".json")
-    ? (await readFile(scriptPath, "utf8")).trim()
-    : await runSensorJson(scriptPath, timeoutMs);
+  const lower = scriptPath.toLowerCase();
+  if (lower.endsWith(".json")) {
+    const parsed = await readSafeJsonFile(scriptPath, MAX_SENSOR_BYTES);
+    return parseActivePanelJson(parsed, "shell");
+  }
+  if (!/\.(?:mjs|cjs|js)$/i.test(scriptPath)) {
+    throw new Error(`Refusing unsupported active panel sensor extension (expected .json or .mjs/.cjs/.js): ${scriptPath}`);
+  }
+  const safeScriptPath = await assertSafeRegularFile(scriptPath, MAX_SENSOR_BYTES);
+  const stdout = await runSensorJson(safeScriptPath, timeoutMs);
   let parsed: unknown;
   try {
     parsed = JSON.parse(stdout);
@@ -625,27 +635,43 @@ export async function sampleActivePanelFromShell(options?: {
 
 function runSensorJson(scriptPath: string, timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
-    const isNodeScript = /\.(?:mjs|cjs|js)$/i.test(scriptPath);
-    const command = isNodeScript ? process.execPath : scriptPath;
-    const args = isNodeScript ? [scriptPath] : [];
-    const child = spawn(command, args, { shell: false });
+    const child = spawn(process.execPath, [scriptPath], { shell: false });
     let stdout = "";
     let stderr = "";
+    let totalBytes = 0;
+    let settled = false;
     const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
       child.kill();
       reject(new Error(`Active panel sensor timed out after ${timeoutMs}ms (${scriptPath})`));
     }, timeoutMs);
-    child.stdout.on("data", (chunk: Buffer | string) => {
-      stdout += String(chunk);
-    });
-    child.stderr.on("data", (chunk: Buffer | string) => {
-      stderr += String(chunk);
-    });
+    const appendChunk = (target: "stdout" | "stderr", chunk: Buffer | string) => {
+      const text = String(chunk);
+      totalBytes += Buffer.byteLength(text, "utf8");
+      if (totalBytes > MAX_SENSOR_BYTES) {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          child.kill();
+          reject(new Error(`Active panel sensor output exceeded ${MAX_SENSOR_BYTES} bytes (${scriptPath})`));
+        }
+        return;
+      }
+      if (target === "stdout") stdout += text;
+      else stderr += text;
+    };
+    child.stdout.on("data", (chunk: Buffer | string) => appendChunk("stdout", chunk));
+    child.stderr.on("data", (chunk: Buffer | string) => appendChunk("stderr", chunk));
     child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
       reject(error);
     });
     child.on("close", (code) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
       if (code !== 0) {
         reject(new Error(`Active panel sensor exit ${code}: ${stderr || stdout || "no output"}`));

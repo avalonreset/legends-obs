@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { readSafeJsonFile } from "./safe-io.js";
 import type { JsonObject } from "./types.js";
 
 export interface ObsWebSocketConfig {
@@ -9,9 +10,15 @@ export interface ObsWebSocketConfig {
   server_password?: string;
 }
 
+export function isValidPort(port: unknown): port is number {
+  return typeof port === "number" && Number.isInteger(port) && port >= 1 && port <= 65535;
+}
+
 export async function readObsWebSocketConfig(file: string): Promise<ObsWebSocketConfig> {
-  const parsed = JSON.parse(await readFile(file, "utf8")) as Partial<ObsWebSocketConfig>;
-  if (typeof parsed.server_port !== "number") throw new Error(`Invalid OBS WebSocket config: ${file}`);
+  const parsed = await readSafeJsonFile<Partial<ObsWebSocketConfig>>(file, 1024 * 1024);
+  if (!parsed || typeof parsed !== "object" || !isValidPort(parsed.server_port)) {
+    throw new Error(`Invalid OBS WebSocket config: ${file}`);
+  }
   return {
     server_enabled: parsed.server_enabled === true,
     server_port: parsed.server_port,

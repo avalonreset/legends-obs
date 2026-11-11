@@ -32,6 +32,7 @@ export function buildManifest() {
             { command: "record:start", mutation: true, purpose: "Start local recording after explicit live confirmation." },
             { command: "record:stop", mutation: true, purpose: "Stop local recording after explicit live confirmation." },
             { command: "record:canary", mutation: true, purpose: "Bounded local recording plus FFprobe, OBS-log, and frame-drop proof." },
+            { command: "logs:latest", mutation: false, purpose: "Read redacted recent encoder, recording, and WebSocket lines from the latest OBS log." },
             { command: "receipts:list", mutation: false, purpose: "List local redacted receipts." },
             { command: "receipts:verify", mutation: false, purpose: "Parse and secret-scan local receipts." },
             { command: "vision-switch:scene-plan", mutation: false, purpose: "Propose panel-ab / panel-cd scene graph; honest pixels (no stretch default; Option A GO)." },

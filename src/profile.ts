@@ -5,6 +5,7 @@ import { DEFAULT_PRESET_ID } from "./identity.js";
 import { readRecordEncoderSettings } from "./obs-config.js";
 import { assertOutputsIdle, type ObsWebSocketClient } from "./obs-websocket.js";
 import { writeReceipt, writeSnapshot } from "./receipts.js";
+import { readSafeJsonFile } from "./safe-io.js";
 import type { JsonObject, ObsPreset, ProfileParameter, ProfileSnapshot } from "./types.js";
 
 const EXTRA_PARAMETERS: ProfileParameter[] = [
@@ -203,7 +204,8 @@ export async function refreshVideoPipeline(client: ObsWebSocketClient, config: K
 
 export async function rollbackSnapshot(client: ObsWebSocketClient, config: KitConfig, snapshotPath: string): Promise<JsonObject> {
   await assertOutputsIdle(client);
-  const parsed = JSON.parse(await readFile(path.resolve(snapshotPath), "utf8")) as ProfileSnapshot;
+  const snapshotsRoot = path.resolve(config.stateDir, "snapshots");
+  const parsed = await readSafeJsonFile<ProfileSnapshot>(path.resolve(snapshotPath), 5 * 1024 * 1024, snapshotsRoot);
   if (parsed.kind !== "legends-obs-profile-snapshot" || parsed.version !== 1) throw new Error("Not a Legends OBS profile snapshot");
   const profileList = await client.request("GetProfileList");
   if (String(profileList.currentProfileName) !== parsed.profileName) {

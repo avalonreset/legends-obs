@@ -1,10 +1,10 @@
 import { readFile, stat } from "node:fs/promises";
-import { spawn } from "node:child_process";
 import { latestObsLog } from "./obs-config.js";
 import { assertOutputsIdle } from "./obs-websocket.js";
 import { buildProfilePlan } from "./profile.js";
 import { writeReceipt } from "./receipts.js";
 import { getPrimaryMicrophoneStatus } from "./audio.js";
+import { runBoundedCommand, validateLocalMediaPath } from "./safe-io.js";
 function wait(milliseconds) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -48,26 +48,19 @@ export async function stopRecordingAndVerifyIdle(client, watchMs = 5_000, pollMs
         throw new Error("Recording became active at the end of the cleanup watch window");
 }
 async function runJson(command, args) {
-    return await new Promise((resolve, reject) => {
-        const child = spawn(command, args, { shell: false });
-        let stdout = "";
-        let stderr = "";
-        child.stdout.on("data", (chunk) => { stdout += String(chunk); });
-        child.stderr.on("data", (chunk) => { stderr += String(chunk); });
-        child.on("error", reject);
-        child.on("close", (code) => {
-            if (code !== 0)
-                reject(new Error(`${command} failed (${code}): ${stderr.trim()}`));
-            else {
-                try {
-                    resolve(JSON.parse(stdout));
-                }
-                catch {
-                    reject(new Error(`${command} returned invalid JSON`));
-                }
-            }
-        });
-    });
+    const res = await runBoundedCommand(command, args, { timeoutMs: 10_000, maxBytes: 1024 * 1024 });
+    if (res.timedOut)
+        throw new Error(`${command} timed out after 10000 ms`);
+    if (res.overflowed)
+        throw new Error(`${command} output exceeded 1 MiB limit`);
+    if (res.code !== 0)
+        throw new Error(`${command} failed (${String(res.code)}): ${res.stderr.trim()}`);
+    try {
+        return JSON.parse(res.stdout);
+    }
+    catch {
+        throw new Error(`${command} returned invalid JSON`);
+    }
 }
 function parseFps(value) {
     const text = String(value ?? "0/1");
@@ -126,7 +119,8 @@ export async function runCanary(client, config, preset, seconds, requirePrimaryM
     }
     const outputPath = String(stopResult.outputPath);
     const sizeBytes = await waitForFile(outputPath);
-    const probe = await runJson(config.ffprobePath, ["-v", "error", "-show_streams", "-show_format", "-of", "json", outputPath]);
+    const safeOutputPath = await validateLocalMediaPath(outputPath);
+    const probe = await runJson(config.ffprobePath, ["-v", "error", "-show_streams", "-show_format", "-of", "json", "-i", safeOutputPath]);
     const streams = probe.streams ?? [];
     const video = streams.find((stream) => stream.codec_type === "video");
     if (!video)

@@ -59,8 +59,8 @@ local DEFAULTS = {
   enable_laser_wake = false,
   enable_comet_trail = false,
   enable_stretch_warp = false,
-  enable_left_click = true,
-  enable_right_click = true,
+  enable_left_click = false,
+  enable_right_click = false,
   idle_activity = 0.10,
   mode_strength = 1.0,
   speed_limit = 2000.0,
@@ -493,8 +493,8 @@ source_def.get_properties = function(data)
   obs.obs_properties_add_bool(props, "enable_laser_wake", "Enable laser/wake line")
   obs.obs_properties_add_bool(props, "enable_comet_trail", "Enable comet afterimages")
   obs.obs_properties_add_bool(props, "enable_stretch_warp", "Enable stretch warp")
-  obs.obs_properties_add_bool(props, "enable_left_click", "Enable left-click effect")
-  obs.obs_properties_add_bool(props, "enable_right_click", "Enable right-click effect")
+  obs.obs_properties_add_bool(props, "enable_left_click", "Enable left-click ripple (opt-in Win32 button state)")
+  obs.obs_properties_add_bool(props, "enable_right_click", "Enable right-click ripple (opt-in Win32 button state)")
 
   obs.obs_properties_add_text(props, "amounts_label", "Effect amounts", obs.OBS_TEXT_INFO)
   obs.obs_properties_add_float_slider(props, "radius", "Halo radius", 5.0, 300.0, 1.0)

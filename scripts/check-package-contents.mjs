@@ -27,7 +27,7 @@ const required = [
   "THIRD_PARTY_NOTICES.md",
 ];
 for (const entry of required) assert(packageJson.files.includes(entry), `package files missing ${entry}`);
-for (const forbidden of [".legends-obs-kit", "node_modules", ".env"]) {
+for (const forbidden of [".legends-obs-kit", "node_modules", ".env", "extras/cursor"]) {
   assert(!packageJson.files.includes(forbidden), `package files must exclude ${forbidden}`);
 }
 assert.equal(packageJson.bin["legends-obs"], "./dist/index.js");
@@ -55,7 +55,7 @@ assert.equal(packResult.status, 0, `npm pack --dry-run failed: ${packResult.erro
 const packReport = JSON.parse(packResult.stdout);
 assert.equal(packReport.length, 1, "npm pack should describe exactly one package");
 const packedFiles = packReport[0].files.map((entry) => String(entry.path).replaceAll("\\", "/"));
-for (const forbidden of ["node_modules/", ".legends-obs-kit/", ".codex-tmp/", ".env", "scripts/fix-nvenc", "scripts/wire-kick"]) {
+for (const forbidden of ["node_modules/", ".legends-obs-kit/", ".codex-tmp/", ".env", "extras/cursor/", "scripts/fix-nvenc", "scripts/wire-kick"]) {
   assert(!packedFiles.some((file) => file === forbidden || file.startsWith(forbidden)), `packed artifact contains forbidden path: ${forbidden}`);
 }
 for (const requiredFile of ["dist/index.js", "docs/AGENT-RECIPE.md", "presets/hdr-4k60-av1-balanced.json", "presets/hdr-4k60-av1-hybrid-mp4.json", "skills/cto-legends/SKILL.md", ".legends-module", ".legends-router-pin", "LICENSE", "README.md"]) {

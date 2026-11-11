@@ -5,6 +5,7 @@ export interface ObsWebSocketConfig {
     auth_required: boolean;
     server_password?: string;
 }
+export declare function isValidPort(port: unknown): port is number;
 export declare function readObsWebSocketConfig(file: string): Promise<ObsWebSocketConfig>;
 export declare function publicWebSocketConfig(config: ObsWebSocketConfig): JsonObject;
 export declare function resolveProfileDirectory(obsConfigRoot: string, profileName: string): Promise<string>;

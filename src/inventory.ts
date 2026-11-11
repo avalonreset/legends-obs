@@ -1,6 +1,5 @@
 import os from "node:os";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import type { KitConfig } from "./config.js";
 import {
   latestObsLog,
@@ -16,16 +15,17 @@ import type { ObsWebSocketClient } from "./obs-websocket.js";
 import { getOutputActivity } from "./obs-websocket.js";
 import { showProfile } from "./profile.js";
 import { redactUnknown } from "./redact.js";
+import { runBoundedCommand, validateLocalMediaPath } from "./safe-io.js";
 import type { JsonObject, JsonValue, ObsPreset } from "./types.js";
 
 async function commandOutput(command: string, args: string[]): Promise<string | null> {
-  return await new Promise((resolve) => {
-    const child = spawn(command, args, { shell: false });
-    let stdout = "";
-    child.stdout.on("data", (chunk) => { stdout += String(chunk); });
-    child.on("error", () => resolve(null));
-    child.on("close", (code) => resolve(code === 0 ? stdout.trim() : null));
-  });
+  try {
+    const res = await runBoundedCommand(command, args, { timeoutMs: 10_000, maxBytes: 1024 * 1024 });
+    if (res.timedOut || res.overflowed || res.code !== 0) return null;
+    return res.stdout.trim();
+  } catch {
+    return null;
+  }
 }
 
 async function queryNvidiaSmi(): Promise<string | null> {
@@ -39,13 +39,19 @@ async function queryNvidiaSmi(): Promise<string | null> {
   return null;
 }
 
-async function probeMedia(ffprobePath: string, file: string): Promise<JsonObject | null> {
+export async function probeMedia(ffprobePath: string, file: string): Promise<JsonObject | null> {
+  let safeFile: string;
+  try {
+    safeFile = await validateLocalMediaPath(file);
+  } catch {
+    return null;
+  }
   const raw = await commandOutput(ffprobePath, [
     "-v", "error",
     "-select_streams", "v:0",
     "-show_entries", "stream=codec_name,pix_fmt,width,height,r_frame_rate,color_range,color_space,color_transfer,color_primaries",
     "-of", "json",
-    file,
+    "-i", safeFile,
   ]);
   if (!raw) return null;
   try { return JSON.parse(raw) as JsonObject; }

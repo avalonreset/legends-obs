@@ -1,6 +1,19 @@
 import crypto from "node:crypto";
+import { isValidPort } from "./obs-config.js";
 function sha256Base64(value) {
     return crypto.createHash("sha256").update(value).digest("base64");
+}
+const LOOPBACK_HOSTS = new Set(["127.0.0.1", "::1", "[::1]", "localhost"]);
+const PRINTABLE_TOKEN_RE = /^[\x21-\x7e]{1,256}$/;
+export function normalizeLoopbackHost(host) {
+    if (typeof host !== "string") {
+        throw new Error("OBS WebSocket host must be a loopback address (127.0.0.1, ::1, or localhost)");
+    }
+    const trimmed = host.trim().toLowerCase();
+    if (!LOOPBACK_HOSTS.has(trimmed)) {
+        throw new Error(`Refusing non-loopback OBS WebSocket host: ${host}`);
+    }
+    return trimmed === "::1" ? "[::1]" : trimmed;
 }
 export class ObsWebSocketClient {
     socket;
@@ -12,9 +25,12 @@ export class ObsWebSocketClient {
     static async connect(host, config, timeoutMs = 5000) {
         if (!config.server_enabled)
             throw new Error("OBS WebSocket server is disabled");
+        if (!isValidPort(config.server_port))
+            throw new Error(`Invalid OBS WebSocket server_port: ${String(config.server_port)}`);
         if (config.auth_required && !config.server_password)
             throw new Error("OBS WebSocket authentication is enabled but no password is configured");
-        const socket = new WebSocket(`ws://${host}:${config.server_port}`);
+        const normalizedHost = normalizeLoopbackHost(host);
+        const socket = new WebSocket(`ws://${normalizedHost}:${config.server_port}`);
         const client = new ObsWebSocketClient(socket);
         await new Promise((resolve, reject) => {
             const timer = setTimeout(() => reject(new Error("Timed out identifying with OBS WebSocket")), timeoutMs);
@@ -22,7 +38,7 @@ export class ObsWebSocketClient {
                 clearTimeout(timer);
                 reject(error);
             };
-            socket.onerror = () => fail(new Error(`Could not connect to OBS WebSocket on ${host}:${config.server_port}`));
+            socket.onerror = () => fail(new Error(`Could not connect to OBS WebSocket on ${normalizedHost}:${config.server_port}`));
             socket.onmessage = (event) => {
                 try {
                     const message = JSON.parse(String(event.data));
@@ -35,10 +51,15 @@ export class ObsWebSocketClient {
                         }
                         const identification = { rpcVersion: 1, eventSubscriptions: 0 };
                         const authentication = message.d.authentication;
-                        if (authentication) {
-                            const salt = String(authentication.salt);
-                            const challenge = String(authentication.challenge);
-                            const secret = sha256Base64(`${config.server_password ?? ""}${salt}`);
+                        if (authentication && config.auth_required === true && typeof config.server_password === "string" && config.server_password.length > 0) {
+                            const salt = typeof authentication.salt === "string" ? authentication.salt : "";
+                            const challenge = typeof authentication.challenge === "string" ? authentication.challenge : "";
+                            if (!PRINTABLE_TOKEN_RE.test(salt) || !PRINTABLE_TOKEN_RE.test(challenge)) {
+                                fail(new Error("OBS WebSocket offered malformed authentication salt or challenge"));
+                                socket.close();
+                                return;
+                            }
+                            const secret = sha256Base64(`${config.server_password}${salt}`);
                             identification.authentication = sha256Base64(`${secret}${challenge}`);
                         }
                         socket.send(JSON.stringify({ op: 1, d: identification }));

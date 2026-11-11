@@ -1,11 +1,11 @@
 import { readFile, stat } from "node:fs/promises";
-import { spawn } from "node:child_process";
 import type { KitConfig } from "./config.js";
 import { latestObsLog } from "./obs-config.js";
 import { assertOutputsIdle, type ObsWebSocketClient } from "./obs-websocket.js";
 import { buildProfilePlan } from "./profile.js";
 import { writeReceipt } from "./receipts.js";
 import { getPrimaryMicrophoneStatus } from "./audio.js";
+import { runBoundedCommand, validateLocalMediaPath } from "./safe-io.js";
 import type { JsonObject, ObsPreset } from "./types.js";
 
 function wait(milliseconds: number): Promise<void> {
@@ -69,21 +69,15 @@ export async function stopRecordingAndVerifyIdle(
 }
 
 async function runJson(command: string, args: string[]): Promise<JsonObject> {
-  return await new Promise((resolve, reject) => {
-    const child = spawn(command, args, { shell: false });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => { stdout += String(chunk); });
-    child.stderr.on("data", (chunk) => { stderr += String(chunk); });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code !== 0) reject(new Error(`${command} failed (${code}): ${stderr.trim()}`));
-      else {
-        try { resolve(JSON.parse(stdout) as JsonObject); }
-        catch { reject(new Error(`${command} returned invalid JSON`)); }
-      }
-    });
-  });
+  const res = await runBoundedCommand(command, args, { timeoutMs: 10_000, maxBytes: 1024 * 1024 });
+  if (res.timedOut) throw new Error(`${command} timed out after 10000 ms`);
+  if (res.overflowed) throw new Error(`${command} output exceeded 1 MiB limit`);
+  if (res.code !== 0) throw new Error(`${command} failed (${String(res.code)}): ${res.stderr.trim()}`);
+  try {
+    return JSON.parse(res.stdout) as JsonObject;
+  } catch {
+    throw new Error(`${command} returned invalid JSON`);
+  }
 }
 
 function parseFps(value: unknown): number {
@@ -149,7 +143,8 @@ export async function runCanary(
 
   const outputPath = String(stopResult.outputPath);
   const sizeBytes = await waitForFile(outputPath);
-  const probe = await runJson(config.ffprobePath, ["-v", "error", "-show_streams", "-show_format", "-of", "json", outputPath]);
+  const safeOutputPath = await validateLocalMediaPath(outputPath);
+  const probe = await runJson(config.ffprobePath, ["-v", "error", "-show_streams", "-show_format", "-of", "json", "-i", safeOutputPath]);
   const streams = (probe.streams as JsonObject[] | undefined) ?? [];
   const video = streams.find((stream) => stream.codec_type === "video");
   if (!video) throw new Error("Canary recording has no video stream");
