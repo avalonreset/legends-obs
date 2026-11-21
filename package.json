@@ -1,14 +1,14 @@
 {
   "name": "@avalonreset/legends-obs",
-  "version": "0.1.5",
-  "description": "Guarded, agent-first control and proof for OBS Studio on Windows.",
+  "version": "0.1.6",
+  "description": "legends-obs: OBS Studio WebSocket v5 scene, audio filter chain, encoder preflight & recording automation CLI for coding agents",
   "license": "MIT",
   "author": "Avalon Reset contributors",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/avalonreset/legends-obs.git"
   },
-  "homepage": "https://cto-legends.com",
+  "homepage": "https://cto-legends.com/modules/legends-obs",
   "bugs": {
     "url": "https://github.com/avalonreset/legends-obs/issues"
   },
@@ -31,6 +31,7 @@
     "dist",
     "docs",
     "assets/banner.webp",
+    "assets/cards/r1",
     "presets/hdr-4k60-av1-balanced.json",
     "presets/hdr-4k60-av1-hybrid-mp4.json",
     "skills",

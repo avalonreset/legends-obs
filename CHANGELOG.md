@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6 - 2026-11-21
+
+- Add outlined Legends Font SVG design cards (`assets/cards/r1/`) and `scripts/render_cards.py` covering agent handoff, three-pillar studio topology and audio preflight overview, plain english operator prompt chains, two-chamber OBS WebSocket v5 and FFprobe canary architecture, ad-hoc vs verified studio control matrix, and the collection star shrine.
+- Rewrite `README.md` to the evergreen CTO Legends README standard with collapsible `<details>` reference drawers, zero version/count drift, and full 36-command `legends-obs` (`lobs`) reference tables.
+- Include `assets/cards/r1` in the `package.json` distribution allowlist and verify SVG card integrity in `scripts/check_release.py`.
+
 ## 0.1.5 - 2026-11-11
 
 - Disable `user32` mouse-button polling by default (`enable_left_click = false`, `enable_right_click = false`) in `extras/cursor/legends_cursor_filter.lua` behind explicit opt-in OBS property toggles (Windows 11 Defender / EDR Law 4), scan `.lua` files in `scripts/check_release.py`, and exclude the GPL-2.0-or-later `extras/cursor/` folder from the MIT npm tarball (`package.json` `"files"`).

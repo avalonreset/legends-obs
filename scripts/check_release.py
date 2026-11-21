@@ -35,7 +35,7 @@ REQUIRED = [
     "assets/social-preview.png",
     "assets/manifest.json",
 ]
-TEXT_SUFFIXES = {".md", ".py", ".json", ".toml", ".yml", ".yaml", ".in", ".txt", ".cfg", ".ini", ".cff", ".ts", ".js", ".mjs", ".lua"}
+TEXT_SUFFIXES = {".md", ".py", ".json", ".toml", ".yml", ".yaml", ".in", ".txt", ".cfg", ".ini", ".cff", ".ts", ".js", ".mjs", ".lua", ".svg"}
 FORBIDDEN = [
     r"(?i)[a-z]:\\{1,2}users\\{1,2}(?!\\|public\b|default\b|someone\b|you\b|<)",
     r"(?i)\.tail[a-z0-9]+\.ts\.net",

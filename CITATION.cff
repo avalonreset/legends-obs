@@ -5,6 +5,6 @@ title: "legends-obs"
 authors:
   - name: "Avalon Reset contributors"
 repository-code: "https://github.com/avalonreset/legends-obs"
-url: "https://cto-legends.com"
-version: "0.1.5"
+url: "https://cto-legends.com/modules/legends-obs"
+version: "0.1.6"
 license: MIT
