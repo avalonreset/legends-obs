@@ -1,6 +1,6 @@
 {
   "name": "@avalonreset/legends-obs",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "legends-obs: OBS Studio WebSocket v5 scene, audio filter chain, encoder preflight & recording automation CLI for coding agents",
   "license": "MIT",
   "author": "Avalon Reset contributors",

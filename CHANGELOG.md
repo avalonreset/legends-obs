@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 - 2026-11-22
+
+- Sync vendored `cto-legends` router skill pin (`69ddc4f68faa`), enforce LF line endings via `.gitattributes`, and standardize release artifact checksums.
+
 ## 0.1.6 - 2026-11-21
 
 - Add outlined Legends Font SVG design cards (`assets/cards/r1/`) and `scripts/render_cards.py` covering agent handoff, three-pillar studio topology and audio preflight overview, plain english operator prompt chains, two-chamber OBS WebSocket v5 and FFprobe canary architecture, ad-hoc vs verified studio control matrix, and the collection star shrine.
